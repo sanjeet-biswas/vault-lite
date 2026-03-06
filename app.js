@@ -9,6 +9,8 @@
   const IDB_RECORDS_KEY = 'data';
   const STORAGE_KEY_MODE = 'vault-lite-mode';
   const STORAGE_KEY_PIN = 'vault-lite-pin-hash';
+  const STORAGE_KEY_SESSION = 'vault-lite-session-key';
+  const STORAGE_KEY_RECORDS_VIEW = 'vault-lite-records-view';
   const RECORDS_MAX_FILE_SIZE = 25 * 1024 * 1024;
   var RECORDS_ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'md', 'json', 'xml', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'ico'];
   var RECORDS_ALLOWED_MIME_PREFIXES = ['application/pdf', 'application/msword', 'application/vnd.', 'text/', 'image/', 'application/json', 'application/xml'];
@@ -25,12 +27,14 @@
 
   var iconEdit = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M11.3 1.3l3.4 3.4-9.2 9.2L2 15l.1-3.5 9.2-9.2zM10 2L2 10l.6 2.4L12 6 10 2z"/></svg>';
   var iconCopy = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M5 1H3.5C2.67 1 2 1.67 2 2.5v9c0 .83.67 1.5 1.5 1.5H5v1.5c0 .83.67 1.5 1.5 1.5h7c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5H5V1zm0 1.5V5h7v9H5V2.5H3.5v9H5v-9z"/></svg>';
-  var iconTrash = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M5 2h6v1H5V2zm7 2v9.5c0 .83-.67 1.5-1.5 1.5h-7C2.67 15 2 14.33 2 13.5V4h12zM6 6.5v5h1v-5H6zm3 0v5h1v-5H9zM4 4v9.5c0 .28.22.5.5.5h7c.28 0 .5-.22.5-.5V4H4z"/></svg>';
+  var iconTrash = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M4 3h8l1 11H3L4 3zm2 2v7h1V5H6zm3 0v7h1V5H9z"/></svg>';
   var iconUser = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 8c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 1.5c-2.5 0-7 1.2-7 3.5V14h14v-1c0-2.3-4.5-3.5-7-3.5z"/></svg>';
   var iconKey = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.5 4a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 1a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM8 5L4 9v5h3v-2h2v-2h3V9L8 5zm-.5 5.5H6v1.5h1.5v-1.5zm0-2H6V10h1.5V8.5z"/></svg>';
   var iconEye = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 4c3.5 0 6 3 7 4-1 1-3.5 4-7 4s-6-3-7-4c1-1 3.5-4 7-4zm0 1.5C5.3 5.5 3.2 7.6 2.5 8c.7.4 2.8 2.5 5.5 2.5s4.8-2.1 5.5-2.5c-.7-.4-2.8-2.5-5.5-2.5zM8 7a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>';
   var iconEyeOff = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M2 8c0 0 2-3 6-3s6 3 6 3-2 3-6 3-6-3-6-3zm6 2a2 2 0 100-4 2 2 0 000 4z"/><path d="M2 2l12 12" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>';
   var iconDownload = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 10.5l4-4H10V2H6v4.5H4L8 10.5zM2 12v2h12v-2H2z"/></svg>';
+  var iconList = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M2 3h2v2H2V3zm0 4h2v2H2V7zm0 4h2v2H2v-2zm4-8h8v1H6V3zm0 4h8v1H6V7zm0 4h8v1H6v-1z"/></svg>';
+  var iconGrid = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M2 2h5v5H2V2zm0 7h5v5H2V9zm7-7h5v5H9V2zm0 7h5v5H9V9z"/></svg>';
 
   var iconFilePdf = '<svg class="record-file-icon record-file-icon--pdf" viewBox="0 0 32 32" aria-hidden="true"><path fill="#E53935" d="M6 2v28h20V10l-8-8H6zm2 2h6v6h6v16H8V4zm8 2.4L21.6 10H16V6.4z"/><path fill="#C62828" d="M10 14h4v2h-4v-2zm0 4h8v2h-8v-2zm0 4h6v2h-6v-2z"/></svg>';
   var iconFileWord = '<svg class="record-file-icon record-file-icon--word" viewBox="0 0 32 32" aria-hidden="true"><path fill="#2B579A" d="M6 2v28h20V10l-8-8H6zm2 2h6v6h6v16H8V4zm8 2.4L21.6 10H16V6.4z"/><path fill="#fff" d="M11.2 14l1.2 6 1.4-4 1 3.2 1.2-5.2h1.4l-1.8 7h-1.4l-1.2-3.8-1.1 3.8h-1.4L9 14h1.2z"/></svg>';
@@ -110,8 +114,35 @@
   function getDataKey() { return currentMode === 'work' ? STORAGE_KEY : STORAGE_KEY_PERSONAL; }
   function getStoredMode() { var m = localStorage.getItem(STORAGE_KEY_MODE); return m === 'personal' ? 'personal' : 'work'; }
   function setStoredMode(mode) { localStorage.setItem(STORAGE_KEY_MODE, mode); }
+  function getRecordsView() { var v = localStorage.getItem(STORAGE_KEY_RECORDS_VIEW); return v === 'list' ? 'list' : 'card'; }
+  function setRecordsView(view) { localStorage.setItem(STORAGE_KEY_RECORDS_VIEW, view); }
   function getStoredPinHash() { return localStorage.getItem(STORAGE_KEY_PIN); }
   function setStoredPinHash(hash) { localStorage.setItem(STORAGE_KEY_PIN, hash); }
+
+  function saveSessionKey(key) {
+    return crypto.subtle.exportKey('raw', key).then(function (buf) {
+      var b64 = bytesToBase64(new Uint8Array(buf));
+      try { localStorage.setItem(STORAGE_KEY_SESSION, b64); } catch (_) {}
+      try { sessionStorage.setItem(STORAGE_KEY_SESSION, b64); } catch (_) {}
+    }).catch(function () {});
+  }
+  function restoreSessionKey() {
+    var raw = null;
+    try {
+      raw = localStorage.getItem(STORAGE_KEY_SESSION);
+      if (!raw || typeof raw !== 'string' || raw.length === 0) raw = sessionStorage.getItem(STORAGE_KEY_SESSION);
+    } catch (e) { return Promise.resolve(null); }
+    if (!raw || typeof raw !== 'string' || raw.length === 0) return Promise.resolve(null);
+    try {
+      var decoded = atob(raw);
+      var arr = new Uint8Array(decoded.length);
+      for (var i = 0; i < decoded.length; i++) arr[i] = decoded.charCodeAt(i);
+      return crypto.subtle.importKey('raw', arr, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']).then(function (k) { return k; }, function () {
+        try { localStorage.removeItem(STORAGE_KEY_SESSION); sessionStorage.removeItem(STORAGE_KEY_SESSION); } catch (_) {}
+        return null;
+      });
+    } catch (e) { return Promise.resolve(null); }
+  }
 
   function hashPin(pin) {
     var str = String(pin);
@@ -235,19 +266,39 @@
   }
   function addRecord(description, fileName, contentBase64, mimeType) {
     var records = getRecords();
+    var desc = (description || '').trim();
+    var fname = fileName || 'document';
+    var fnameNorm = String(fname).toLowerCase();
+    var now = new Date().toISOString();
+    var existing = records.find(function (r) { return String(r.fileName || '').toLowerCase() === fnameNorm; });
+    if (existing) {
+      existing.description = desc;
+      existing.contentBase64 = contentBase64 || '';
+      existing.mimeType = mimeType || 'application/octet-stream';
+      existing.modifiedAt = now;
+      return saveRecords(records).then(function () { renderRecordsList(); return { updated: true }; });
+    }
     records.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-      description: (description || '').trim(),
-      fileName: fileName || 'document',
+      description: desc,
+      fileName: fname,
       contentBase64: contentBase64 || '',
       mimeType: mimeType || 'application/octet-stream',
-      createdAt: new Date().toISOString()
+      createdAt: now,
+      modifiedAt: now
     });
-    return saveRecords(records).then(renderRecordsList);
+    return saveRecords(records).then(function () { renderRecordsList(); return { updated: false }; });
   }
   function removeRecord(id) {
     var records = getRecords().filter(function (r) { return r.id !== id; });
     return saveRecords(records).then(renderRecordsList);
+  }
+  function formatRecordDate(iso) {
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (e) { return ''; }
   }
 
   function loadData() { var key = getDataKey(); var out = dataCache[key]; if (!out) return { entries: [], informations: [] }; return out; }
@@ -353,6 +404,7 @@
   var iconPersonal = '<svg class="mode-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>';
 
   function showApp() {
+    if (sessionEncryptionKey) saveSessionKey(sessionEncryptionKey).catch(function () {});
     isUnlocked = true;
     currentMode = getStoredMode();
     var pinScreen = document.getElementById('pinScreen');
@@ -397,6 +449,7 @@
     isUnlocked = false;
     sessionEncryptionKey = null;
     dataCache = {};
+    try { localStorage.removeItem(STORAGE_KEY_SESSION); sessionStorage.removeItem(STORAGE_KEY_SESSION); } catch (_) {}
     if (idleTimerId) { clearInterval(idleTimerId); idleTimerId = null; }
     var pinScreen = document.getElementById('pinScreen');
     var appContent = document.getElementById('appContent');
@@ -499,6 +552,26 @@
     entryEl.querySelector('.cancel-edit').addEventListener('click', function () { renderInfoList(); });
   }
 
+  function updateRecordsViewToggle() {
+    var view = getRecordsView();
+    var btn = document.getElementById('recordsViewToggle');
+    if (!btn) return;
+    if (view === 'list') {
+      btn.innerHTML = iconGrid;
+      btn.title = 'Switch to grid view';
+      btn.setAttribute('aria-label', 'Switch to grid view');
+    } else {
+      btn.innerHTML = iconList;
+      btn.title = 'Switch to list view';
+      btn.setAttribute('aria-label', 'Switch to list view');
+    }
+  }
+  function setRecordsLoaderVisible(visible) {
+    var el = document.getElementById('recordsLoaderOverlay');
+    if (!el) return;
+    if (visible) { el.classList.remove('hidden'); el.setAttribute('aria-hidden', 'false'); }
+    else { el.classList.add('hidden'); el.setAttribute('aria-hidden', 'true'); }
+  }
   function renderRecordsList() {
     var listEl = document.getElementById('recordsList');
     var searchEl = document.getElementById('searchRecords');
@@ -506,66 +579,106 @@
     var query = (searchEl && searchEl.value || '').trim().toLowerCase();
     var records = getRecords();
     if (query) records = records.filter(function (r) { return (r.description || '').toLowerCase().indexOf(query) !== -1 || (r.fileName || '').toLowerCase().indexOf(query) !== -1; });
-    if (!getRecords().length) { listEl.className = ''; listEl.innerHTML = '<p class="empty">No documents yet. Upload one above.</p>'; return; }
-    if (!records.length) { listEl.className = ''; listEl.innerHTML = '<p class="empty">No documents match your search.</p>'; return; }
-    listEl.className = 'records-cards-grid';
-    var maxThumbSize = 180000;
-    listEl.innerHTML = records.map(function (r) {
-      var fileIcon = getRecordFileIcon(r);
-      var mime = (r.mimeType || '').toLowerCase();
-      var base64 = r.contentBase64 || '';
-      var isImage = mime.indexOf('image/') === 0;
-      var showThumb = isImage && base64.length > 0 && base64.length < maxThumbSize;
-      var previewHtml = showThumb ? '<img class="record-card-thumb" src="data:' + escapeHtml(mime || 'image/png') + ';base64,' + base64 + '" alt="">' : '<span class="record-file-icon-wrap" aria-hidden="true">' + fileIcon + '</span>';
-      return '<div class="record-card" data-id="' + r.id + '"><div class="record-card-preview">' + previewHtml + '</div><div class="record-card-title">' + escapeHtml(r.description || 'No description') + '</div><div class="record-card-meta">' + escapeHtml(r.fileName) + '</div><div class="record-card-actions"><button type="button" class="btn-ghost record-preview" title="Preview">' + iconEye + '</button><button type="button" class="btn-ghost record-download" title="Download">' + iconDownload + '</button><button type="button" class="btn-danger record-delete" title="Delete">' + iconTrash + '</button></div></div>';
-    }).join('');
-    listEl.querySelectorAll('.record-card').forEach(function (cardEl) {
-      var id = cardEl.dataset.id;
-      var rec = records.find(function (r) { return r.id === id; });
-      if (!rec) return;
-      cardEl.querySelector('.record-preview').addEventListener('click', function () { showRecordPreview(rec); });
-      cardEl.querySelector('.record-download').addEventListener('click', function () {
-        try {
-          var binary = atob(rec.contentBase64 || '');
-          var bytes = new Uint8Array(binary.length);
-          for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-          var blob = new Blob([bytes], { type: rec.mimeType || 'application/octet-stream' });
-          var a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = rec.fileName || 'document';
-          a.click();
-          URL.revokeObjectURL(a.href);
-        } catch (e) { alert('Download failed.'); }
+    if (!getRecords().length) { listEl.className = ''; listEl.innerHTML = '<p class="empty">No documents yet. Upload one above.</p>'; updateRecordsViewToggle(); return; }
+    if (!records.length) { listEl.className = ''; listEl.innerHTML = '<p class="empty">No documents match your search.</p>'; updateRecordsViewToggle(); return; }
+    var view = getRecordsView();
+    if (view === 'list') {
+      listEl.className = 'records-list';
+      listEl.innerHTML = records.map(function (r) {
+        return '<div class="record-list-item" data-id="' + r.id + '"><div class="record-item-info"><div class="record-item-title">' + escapeHtml(r.description || 'No description') + '</div><div class="record-item-meta-row"><span class="record-item-meta">' + escapeHtml(r.fileName) + '</span><span class="record-item-date">' + escapeHtml(formatRecordDate(r.modifiedAt || r.createdAt)) + '</span></div></div><div class="record-item-actions"><button type="button" class="btn-ghost record-preview" title="Preview">' + iconEye + '</button><button type="button" class="btn-ghost record-download" title="Download">' + iconDownload + '</button><button type="button" class="btn-danger record-delete" title="Delete">' + iconTrash + '</button></div></div>';
+      }).join('');
+      listEl.querySelectorAll('.record-list-item').forEach(function (rowEl) {
+        var id = rowEl.dataset.id;
+        var rec = records.find(function (r) { return r.id === id; });
+        if (!rec) return;
+        rowEl.addEventListener('dblclick', function (e) { if (e.target.closest('button')) return; showRecordPreview(rec); });
+        rowEl.querySelector('.record-preview').addEventListener('click', function (e) { e.stopPropagation(); showRecordPreview(rec); });
+        rowEl.querySelector('.record-download').addEventListener('click', function (e) {
+          e.stopPropagation();
+          try {
+            var binary = atob(rec.contentBase64 || '');
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            var blob = new Blob([bytes], { type: rec.mimeType || 'application/octet-stream' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = rec.fileName || 'document';
+            a.click();
+            URL.revokeObjectURL(a.href);
+          } catch (err) { alert('Download failed.'); }
+        });
+        rowEl.querySelector('.record-delete').addEventListener('click', function (e) { e.stopPropagation(); if (confirm('Delete this document?')) removeRecord(id); });
       });
-      cardEl.querySelector('.record-delete').addEventListener('click', function () { if (confirm('Delete this document?')) removeRecord(id); });
-    });
+    } else {
+      listEl.className = 'records-cards-grid';
+      listEl.innerHTML = records.map(function (r) {
+        return '<div class="record-card" data-id="' + r.id + '"><div class="record-card-title">' + escapeHtml(r.description || 'No description') + '</div><div class="record-card-meta-row"><span class="record-card-meta">' + escapeHtml(r.fileName) + '</span><span class="record-card-date">' + escapeHtml(formatRecordDate(r.modifiedAt || r.createdAt)) + '</span></div><div class="record-card-actions"><button type="button" class="btn-ghost record-preview" title="Preview">' + iconEye + '</button><button type="button" class="btn-ghost record-download" title="Download">' + iconDownload + '</button><button type="button" class="btn-danger record-delete" title="Delete">' + iconTrash + '</button></div></div>';
+      }).join('');
+      listEl.querySelectorAll('.record-card').forEach(function (cardEl) {
+        var id = cardEl.dataset.id;
+        var rec = records.find(function (r) { return r.id === id; });
+        if (!rec) return;
+        cardEl.addEventListener('dblclick', function (e) { if (e.target.closest('button')) return; showRecordPreview(rec); });
+        cardEl.querySelector('.record-preview').addEventListener('click', function () { showRecordPreview(rec); });
+        cardEl.querySelector('.record-download').addEventListener('click', function () {
+          try {
+            var binary = atob(rec.contentBase64 || '');
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            var blob = new Blob([bytes], { type: rec.mimeType || 'application/octet-stream' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = rec.fileName || 'document';
+            a.click();
+            URL.revokeObjectURL(a.href);
+          } catch (e) { alert('Download failed.'); }
+        });
+        cardEl.querySelector('.record-delete').addEventListener('click', function () { if (confirm('Delete this document?')) removeRecord(id); });
+      });
+    }
+    updateRecordsViewToggle();
   }
 
   function initAuth() {
-    var hash = getStoredPinHash();
-    var pinScreen = document.getElementById('pinScreen');
-    var appContent = document.getElementById('appContent');
-    var pinCreate = document.getElementById('pinCreate');
-    var pinEnter = document.getElementById('pinEnter');
-    if (pinScreen) { pinScreen.classList.remove('hidden'); pinScreen.style.display = ''; }
-    if (appContent) { appContent.classList.add('hidden'); appContent.style.display = 'none'; }
-    if (hash) {
-      if (pinCreate) pinCreate.style.display = 'none';
-      if (pinEnter) pinEnter.style.display = 'block';
-      var pinInput = document.getElementById('pinInput');
-      if (pinInput) { pinInput.value = ''; pinInput.classList.remove('invalid', 'shake', 'valid'); pinInput.focus(); }
-    } else {
-      if (pinCreate) pinCreate.style.display = 'block';
-      if (pinEnter) pinEnter.style.display = 'none';
-      var newPin = document.getElementById('newPin');
-      var confirmPin = document.getElementById('confirmPin');
-      if (newPin) newPin.value = '';
-      if (confirmPin) confirmPin.value = '';
-      if (newPin) newPin.focus();
-    }
-    currentMode = getStoredMode();
-    updateModeToggle();
-    document.getElementById('createPinForm').addEventListener('submit', function (e) {
+    restoreSessionKey().then(function (key) {
+      if (key) {
+        sessionEncryptionKey = key;
+        return loadAllIntoCache().then(function () { showApp(); return true; });
+      }
+      return null;
+    }).then(function (restored) {
+      if (restored) return;
+      runPinScreenSetup();
+    }).catch(function () {
+      try { localStorage.removeItem(STORAGE_KEY_SESSION); sessionStorage.removeItem(STORAGE_KEY_SESSION); } catch (_) {}
+      runPinScreenSetup();
+    });
+  }
+  function runPinScreenSetup() {
+      var hash = getStoredPinHash();
+      var pinScreen = document.getElementById('pinScreen');
+      var appContent = document.getElementById('appContent');
+      var pinCreate = document.getElementById('pinCreate');
+      var pinEnter = document.getElementById('pinEnter');
+      if (pinScreen) { pinScreen.classList.remove('hidden'); pinScreen.style.display = ''; }
+      if (appContent) { appContent.classList.add('hidden'); appContent.style.display = 'none'; }
+      if (hash) {
+        if (pinCreate) pinCreate.style.display = 'none';
+        if (pinEnter) pinEnter.style.display = 'block';
+        var pinInput = document.getElementById('pinInput');
+        if (pinInput) { pinInput.value = ''; pinInput.classList.remove('invalid', 'shake', 'valid'); pinInput.focus(); }
+      } else {
+        if (pinCreate) pinCreate.style.display = 'block';
+        if (pinEnter) pinEnter.style.display = 'none';
+        var newPin = document.getElementById('newPin');
+        var confirmPin = document.getElementById('confirmPin');
+        if (newPin) newPin.value = '';
+        if (confirmPin) confirmPin.value = '';
+        if (newPin) newPin.focus();
+      }
+      currentMode = getStoredMode();
+      updateModeToggle();
+      document.getElementById('createPinForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var newPin = document.getElementById('newPin').value;
       var confirmPin = document.getElementById('confirmPin').value;
@@ -577,7 +690,7 @@
         document.getElementById('confirmPin').value = '';
         deriveKeyFromPin(newPin).then(function (key) {
           sessionEncryptionKey = key;
-          return loadAllIntoCache();
+          return saveSessionKey(key).then(function () { return loadAllIntoCache(); });
         }).then(showApp).catch(function (err) {
           sessionEncryptionKey = null;
           dataCache[STORAGE_KEY] = { entries: [], informations: [] };
@@ -598,7 +711,7 @@
           setTimeout(function () {
             deriveKeyFromPin(pin).then(function (key) {
               sessionEncryptionKey = key;
-              return loadAllIntoCache();
+              return saveSessionKey(key).then(function () { return loadAllIntoCache(); });
             }).then(showApp).catch(function (err) {
               sessionEncryptionKey = null;
               dataCache[STORAGE_KEY] = { entries: [], informations: [] };
@@ -641,6 +754,16 @@
   });
 
   var addRecordFormEl = document.getElementById('addRecordForm');
+  var recordFileEl = document.getElementById('recordFile');
+  var recordFileNameDisplayEl = document.getElementById('recordFileNameDisplay');
+  var recordFileLabelEl = document.getElementById('recordFileLabel');
+  function updateRecordFileDisplay() {
+    var file = recordFileEl && recordFileEl.files && recordFileEl.files[0];
+    var name = file ? file.name : '';
+    if (recordFileNameDisplayEl) recordFileNameDisplayEl.textContent = name;
+    if (recordFileLabelEl) { recordFileLabelEl.textContent = name || 'Choose file'; recordFileLabelEl.classList.toggle('has-file', !!file); }
+  }
+  if (recordFileEl) { recordFileEl.addEventListener('change', updateRecordFileDisplay); }
   if (addRecordFormEl) addRecordFormEl.addEventListener('submit', function (e) {
     e.preventDefault();
     var descEl = document.getElementById('recordDescription');
@@ -660,16 +783,17 @@
     if (!extOk && !mimeOk) { showFeedback('File type not supported.', true); return; }
     if (file.size > RECORDS_MAX_FILE_SIZE) { showFeedback('File size exceeds the limit (max 25 MB).', true); return; }
     setLoading(true);
+    setRecordsLoaderVisible(true);
     showFeedback('');
     var reader = new FileReader();
     reader.onload = function () {
       var dataUrl = reader.result;
       var base64 = dataUrl.indexOf('base64,') !== -1 ? dataUrl.split('base64,')[1] : dataUrl;
       addRecord(description, file.name, base64, file.type || 'application/octet-stream')
-        .then(function () { setLoading(false); showFeedback('Uploaded successfully.'); if (descEl) descEl.value = ''; if (fileEl) fileEl.value = ''; setTimeout(function () { showFeedback(''); }, 3000); })
-        .catch(function (err) { setLoading(false); var msg = (err && err.name === 'QuotaExceededError') ? 'File size exceeds the limit. Try a smaller file or remove some documents.' : 'Upload failed.'; showFeedback(msg, true); });
+        .then(function (result) { setLoading(false); setRecordsLoaderVisible(false); showFeedback(result.updated ? 'Updated: ' + (file.name || 'document') : 'Added: ' + (file.name || 'document')); if (descEl) descEl.value = ''; if (fileEl) fileEl.value = ''; var nameEl = document.getElementById('recordFileNameDisplay'); if (nameEl) nameEl.textContent = ''; var labelEl = document.getElementById('recordFileLabel'); if (labelEl) { labelEl.textContent = 'Choose file'; labelEl.classList.remove('has-file'); } setTimeout(function () { showFeedback(''); }, 3000); })
+        .catch(function (err) { setLoading(false); setRecordsLoaderVisible(false); var msg = (err && err.name === 'QuotaExceededError') ? 'File size exceeds the limit. Try a smaller file or remove some documents.' : 'Upload failed.'; showFeedback(msg, true); });
     };
-    reader.onerror = function () { setLoading(false); showFeedback('Failed to read file.', true); };
+    reader.onerror = function () { setLoading(false); setRecordsLoaderVisible(false); showFeedback('Failed to read file.', true); };
     reader.readAsDataURL(file);
   });
 
@@ -719,16 +843,95 @@
       if (!allowed.length) { showFeedback(skipped ? 'File type not supported or file too large.' : 'No valid files dropped.', true); return; }
       if (skipped) showFeedback('Skipped ' + skipped + ' file(s). Uploading ' + allowed.length + '...', false);
       setLoading(true);
+      setRecordsLoaderVisible(true);
       var done = 0;
       var failed = 0;
+      var addedNames = [];
+      var updatedNames = [];
       function next() {
-        if (done + failed >= allowed.length) { setLoading(false); if (failed) showFeedback('Uploaded ' + done + '. ' + failed + ' failed.', true); else showFeedback('Uploaded ' + done + ' file(s).', false); setTimeout(function () { showFeedback(''); }, 3000); renderRecordsList(); return; }
+        if (done + failed >= allowed.length) {
+          setLoading(false);
+          setRecordsLoaderVisible(false);
+          var parts = [];
+          if (addedNames.length) parts.push('Added: ' + addedNames.join(', '));
+          if (updatedNames.length) parts.push('Updated: ' + updatedNames.join(', '));
+          if (failed) parts.push(failed + ' failed');
+          showFeedback(parts.length ? parts.join('. ') + '.' : 'No files uploaded.', !!failed);
+          setTimeout(function () { showFeedback(''); }, 3000);
+          renderRecordsList();
+          return;
+        }
         var file = allowed[done + failed];
-        processDroppedFile(file).then(function () { done++; next(); }, function () { failed++; next(); });
+        processDroppedFile(file).then(function (result) {
+          done++;
+          if (result && result.updated) updatedNames.push(file.name || 'document');
+          else addedNames.push(file.name || 'document');
+          next();
+        }, function () { failed++; next(); });
       }
       next();
     });
   })();
+
+  document.addEventListener('paste', function (e) {
+    var appContent = document.getElementById('appContent');
+    if (!appContent || appContent.classList.contains('hidden')) return;
+    var data = e.clipboardData;
+    if (!data || !data.files || !data.files.length) return;
+    e.preventDefault();
+    var feedbackEl = document.getElementById('recordUploadFeedback');
+    var btn = document.getElementById('recordUploadBtn');
+    function showFeedback(msg, isError) { if (!feedbackEl) return; feedbackEl.textContent = msg; feedbackEl.className = 'record-upload-feedback' + (isError ? ' error' : ' success'); }
+    function setLoading(loading) { if (!btn) return; btn.disabled = loading; btn.classList.toggle('loading', loading); btn.innerHTML = loading ? '<span class="spinner" aria-hidden="true"></span>Uploading...' : 'Upload'; }
+    function isFileAllowed(file) {
+      var ext = (file.name || '').toLowerCase().split('.').pop();
+      var mime = (file.type || '').toLowerCase();
+      var extOk = ext && RECORDS_ALLOWED_EXTENSIONS.indexOf(ext) !== -1;
+      var mimeOk = RECORDS_ALLOWED_MIME_PREFIXES.some(function (p) { return mime.indexOf(p) === 0; });
+      if (!extOk && !mimeOk) return false;
+      if (file.size > RECORDS_MAX_FILE_SIZE) return false;
+      return true;
+    }
+    var files = Array.prototype.slice.call(data.files);
+    var allowed = files.filter(isFileAllowed);
+    if (!allowed.length) { showFeedback('Pasted file type not supported or too large (max 25 MB).', true); setTimeout(function () { showFeedback(''); }, 3000); return; }
+    setLoading(true);
+    setRecordsLoaderVisible(true);
+    showFeedback('Adding pasted file(s)...', false);
+    var done = 0, failed = 0, addedNames = [], updatedNames = [];
+    function processNext(index) {
+      if (index >= allowed.length) {
+        setLoading(false);
+        setRecordsLoaderVisible(false);
+        var parts = [];
+        if (addedNames.length) parts.push('Added: ' + addedNames.join(', '));
+        if (updatedNames.length) parts.push('Updated: ' + updatedNames.join(', '));
+        if (failed) parts.push(failed + ' failed');
+        showFeedback(parts.length ? parts.join('. ') + '.' : 'No files added.', !!failed);
+        setTimeout(function () { showFeedback(''); }, 3000);
+        renderRecordsList();
+        return;
+      }
+      var file = allowed[index];
+      var description = (file.name || '').replace(/\.[^.]+$/, '') || 'Document';
+      var reader = new FileReader();
+      reader.onload = function () {
+        var dataUrl = reader.result;
+        var base64 = dataUrl.indexOf('base64,') !== -1 ? dataUrl.split('base64,')[1] : dataUrl;
+        addRecord(description, file.name, base64, file.type || 'application/octet-stream')
+          .then(function (result) {
+            done++;
+            if (result && result.updated) updatedNames.push(file.name || 'document');
+            else addedNames.push(file.name || 'document');
+            processNext(index + 1);
+          })
+          .catch(function () { failed++; processNext(index + 1); });
+      };
+      reader.onerror = function () { failed++; processNext(index + 1); };
+      reader.readAsDataURL(file);
+    }
+    processNext(0);
+  });
 
   document.getElementById('tabCredentials').addEventListener('click', function () {
     document.getElementById('tabCredentials').classList.add('active');
@@ -795,6 +998,11 @@
   if (searchInfoEl) searchInfoEl.addEventListener('input', renderInfoList);
   var searchRecordsEl = document.getElementById('searchRecords');
   if (searchRecordsEl) searchRecordsEl.addEventListener('input', renderRecordsList);
+  var recordsViewToggleBtn = document.getElementById('recordsViewToggle');
+  if (recordsViewToggleBtn) recordsViewToggleBtn.addEventListener('click', function () {
+    setRecordsView(getRecordsView() === 'list' ? 'card' : 'list');
+    renderRecordsList();
+  });
 
   document.getElementById('exportBtn').addEventListener('click', function () {
     if (!sessionEncryptionKey) { alert('Unlock with PIN first to export (passwords will be encrypted in the file).'); return; }
@@ -887,7 +1095,8 @@
         var merged = existing.slice();
         valid.forEach(function (r) {
           var id = r.id && !merged.some(function (x) { return x.id === r.id; }) ? r.id : (Date.now().toString(36) + Math.random().toString(36).slice(2));
-          merged.push({ id: id, description: (r.description || '').trim(), fileName: r.fileName || 'document', contentBase64: r.contentBase64 || '', mimeType: r.mimeType || 'application/octet-stream', createdAt: r.createdAt || new Date().toISOString() });
+          var created = r.createdAt || new Date().toISOString();
+          merged.push({ id: id, description: (r.description || '').trim(), fileName: r.fileName || 'document', contentBase64: r.contentBase64 || '', mimeType: r.mimeType || 'application/octet-stream', createdAt: created, modifiedAt: r.modifiedAt || created });
         });
         saveRecords(merged).then(function () { renderRecordsList(); alert('Imported ' + valid.length + ' document(s). Total: ' + merged.length + '.'); }).catch(function (err) { alert('Import failed: ' + (err.message || 'storage error')); });
       } catch (err) { alert('Invalid JSON: ' + err.message); }
@@ -905,5 +1114,9 @@
       e.target.value = e.target.value.replace(/\D/g, '');
     }
   });
-  initAuth();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { initAuth(); });
+  } else {
+    initAuth();
+  }
 })();

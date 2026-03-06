@@ -8,11 +8,14 @@ const MIMES = {
   '.js': 'application/javascript',
   '.json': 'application/json',
   '.css': 'text/css',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png'
 };
 
 const server = http.createServer((req, res) => {
-  const file = req.url === '/' ? '/index.html' : req.url;
+  const reqPath = req.url.split('?')[0];
+  const file = reqPath === '/' ? 'index.html' : reqPath.replace(/^\//, '');
   const filePath = path.join(__dirname, file);
   const ext = path.extname(filePath);
 

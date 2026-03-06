@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Export PNG icons</title>
+  <style> body { font-family: sans-serif; padding: 1.5rem; background: #1a1a1a; color: #eee; } button { padding: 0.5rem 1rem; margin: 0.25rem; cursor: pointer; } a { color: #58a6ff; } </style>
+</head>
+<body>
+  <h1>Vault Lite – export PNG icons</h1>
+  <p>Open this file in a browser, then click the buttons to download the PNGs. Save them in the <code>icons</code> folder as <code>icon-192.png</code> and <code>icon-512.png</code>.</p>
+  <p><button id="b192">Download icon-192.png</button> <button id="b512">Download icon-512.png</button></p>
+  <script>
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none"><rect width="512" height="512" rx="96" fill="#0f1419"/><path d="M128 128v160l96-160h64l-96 192v160h-64V288l-96-160h64z" fill="#58a6ff"/><path d="M352 128l-128 224h80l-64 160 160-224h-80l112-160h-80z" fill="#58a6ff" opacity=".95"/></svg>';
+    function exportPng(size) {
+      var canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      var ctx = canvas.getContext('2d');
+      var img = new Image();
+      var blob = new Blob([svg], { type: 'image/svg+xml' });
+      var url = URL.createObjectURL(blob);
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function (b) {
+          var a = document.createElement('a');
+          a.download = 'icon-' + size + '.png';
+          a.href = URL.createObjectURL(b);
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }, 'image/png');
+      };
+      img.src = url;
+    }
+    document.getElementById('b192').onclick = function () { exportPng(192); };
+    document.getElementById('b512').onclick = function () { exportPng(512); };
+  </script>
+</body>
+</html>
