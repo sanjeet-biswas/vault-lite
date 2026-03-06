@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 8v10l6-10h4l-6 12v10h-4V20l-6-12h4z' fill='%2358a6ff'/%3E%3Cpath d='M26 8l-8 14h5l-4 10 10-14h-5l7-10h-5z' fill='%2358a6ff' opacity='.95'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --border: #2d3a4f;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79b8ff;
+      --danger: #f85149;
+      --success: #3fb950;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 1rem;
+      min-height: 100vh;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card {
+      padding: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .pin-screen .container {
+      width: 100%;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .pin-screen .app-brand { display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
+    .pin-screen-box {
+      width: 100%;
+      max-width: 360px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .pin-screen-box .app-brand { margin-bottom: 1rem; }
+    .pin-screen-box .card:last-child { margin-bottom: 0; }
+    .app-brand { display: flex; align-items: center; gap: 0.75rem; }
+    .app-logo { width: 40px; height: 40px; flex-shrink: 0; }
+    .app-logo svg { width: 100%; height: 100%; }
+    .brand-lite { color: var(--muted); font-weight: 400; }
+    .brand-version { font-size: 0.75rem; color: var(--muted); margin-left: 0.25rem; }
+    .app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.25rem; flex-wrap: wrap; gap: 0.75rem; }
+    .form-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .form-row input[type="text"],
+    .form-row input[type="password"] { flex: 1; min-width: 120px; }
+    input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    input::placeholder { color: var(--muted); }
+    input:focus { outline: none; border-color: var(--accent); }
+    button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    button:focus { outline: none; border-color: var(--accent); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .entries h2 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+    .search-bar {
+      width: 100%;
+      margin-bottom: 0.75rem;
+    }
+    .entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-title { font-weight: 500; margin-bottom: 0.25rem; }
+    .entry-meta { font-size: 0.8rem; color: var(--muted); }
+    .entry-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+    .entry-actions button { padding: 0.35rem 0.6rem; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; }
+    .entry-actions .btn-icon { width: 16px; height: 16px; flex-shrink: 0; }
+    .records-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    .record-card {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 1.25rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .record-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(88, 166, 255, 0.15); }
+    .record-card-preview {
+      width: 100%; height: 80px; margin: -1.25rem -1rem 0.75rem -1rem; border-radius: 8px 8px 0 0;
+      background: var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+    }
+    .record-card-preview img.record-card-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .record-card .record-file-icon-wrap { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+    .record-card .record-file-icon { width: 36px; height: 36px; display: block; }
+    .record-card .record-file-icon-wrap .record-file-icon--pdf { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+    .record-card .record-file-icon-wrap .record-file-icon--word,
+    .record-card .record-file-icon-wrap .record-file-icon--excel,
+    .record-card .record-file-icon-wrap .record-file-icon--ppt,
+    .record-card .record-file-icon-wrap .record-file-icon--image { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
+    .record-card .record-card-title { font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    .record-card .record-card-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    .record-card .record-card-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: center; margin-top: auto; }
+    .record-card .record-card-actions button { padding: 0.4rem; font-size: 0.8rem; }
+    .record-card .record-card-actions .btn-icon { width: 16px; height: 16px; }
+    .copy-feedback { font-size: 0.75rem; color: var(--success); margin-left: 0.5rem; }
+    .record-upload-feedback { font-size: 0.85rem; margin-top: 0.5rem; min-height: 1.25em; }
+    .record-upload-feedback.error { color: var(--danger); }
+    .record-upload-feedback.success { color: var(--success); }
+    .btn-primary.loading { pointer-events: none; opacity: 0.85; }
+    .btn-primary .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: record-spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes record-spin { to { transform: rotate(360deg); } }
+    .empty { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
+    .toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .pin-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .pin-screen .card { max-width: 320px; }
+    .pin-screen .card input { width: 100%; display: block; margin-bottom: 0.75rem; box-sizing: border-box; }
+    .pin-input {
+      text-align: center;
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 1.08rem;
+      max-width: 19ch;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box;
+      letter-spacing: 0.6em;
+    }
+    .modal-overlay .pin-input { max-width: none; width: 100%; }
+    .pin-screen #enterPinForm { display: flex; flex-direction: column; align-items: center; }
+    .pin-screen #enterPinForm .btn-unlock {
+      display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .pin-screen #enterPinForm .btn-unlock:active {
+      transform: scale(0.96);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+    .pin-screen #enterPinForm .btn-unlock .btn-icon { width: 18px; height: 18px; }
+    .pin-screen .muted { color: var(--muted); font-size: 0.9rem; margin: 0 0 1rem; }
+    .pin-input.invalid { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(248, 81, 73, 0.25); }
+    .pin-input.valid { border-color: var(--success); box-shadow: 0 0 0 2px rgba(63, 185, 80, 0.25); }
+    .pin-input.shake { animation: pin-shake 0.4s ease-in-out; }
+    @keyframes pin-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+    .app-content.hidden { display: none !important; }
+    .pin-screen.hidden { display: none !important; }
+    .tabs { display: flex; gap: 0; margin: 0 0 1.25rem; border-bottom: 1px solid var(--border); }
+    .tabs button {
+      padding: 0.6rem 1.25rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: -1px;
+    }
+    .tabs button:hover { color: var(--text); }
+    .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    textarea::placeholder { color: var(--muted); }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    .info-type { width: 140px; flex: 0 0 140px; }
+    .info-item { align-items: flex-start; }
+    .info-item .entry-info { flex: 1; }
+    .info-item .entry-meta { white-space: pre-wrap; word-break: break-all; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+    .info-item .info-type-badge { font-size: 0.7rem; color: var(--accent); text-transform: uppercase; margin-bottom: 0.25rem; }
+    .info-link { color: var(--accent); text-decoration: none; }
+    .info-link:hover { text-decoration: underline; }
+    .info-edit-form { width: 100%; margin: 0; }
+    .info-edit-form .form-row { margin-bottom: 0.75rem; }
+    .info-edit-form .form-row:last-of-type { margin-bottom: 0; }
+    select {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    select:focus { outline: none; border-color: var(--accent); }
+    .mode-toggle {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .mode-toggle:hover { color: var(--text); border-color: var(--text); }
+    .mode-toggle.active { border-color: var(--accent); color: var(--accent); }
+    .mode-toggle .mode-icon { width: 18px; height: 18px; flex-shrink: 0; }
+    .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+    .btn-logout {
+      width: 36px; height: 36px; padding: 0; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .btn-logout .btn-icon { width: 18px; height: 18px; }
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 1rem;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-overlay .card { min-width: 280px; max-width: 360px; }
+    .modal-overlay .form-row { margin-bottom: 0.75rem; }
+    .modal-overlay .form-row:last-of-type { margin-bottom: 0; }
+    .modal-overlay .modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .modal-overlay .modal-actions button { flex: 1; }
+    .preview-modal .card { min-width: 320px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; }
+    .preview-modal .preview-title { margin: 0 0 0.75rem; font-weight: 500; }
+    .preview-modal .preview-content { flex: 1; min-height: 200px; max-height: 70vh; overflow: auto; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+    .preview-modal .preview-content img { max-width: 100%; max-height: 70vh; object-fit: contain; display: block; }
+    .preview-modal .preview-content iframe { width: 100%; min-height: 400px; height: 70vh; border: none; }
+    .preview-modal .preview-content pre { margin: 0; padding: 1rem; font-size: 0.85rem; white-space: pre-wrap; word-break: break-all; text-align: left; width: 100%; box-sizing: border-box; }
+    .preview-modal .preview-unavailable { color: var(--muted); padding: 1.5rem; text-align: center; }
+    .records-drop-zone { transition: border-color 0.15s, background-color 0.15s; }
+    .records-drop-zone.drag-over { border-color: var(--accent); background: rgba(88, 166, 255, 0.08); }
+  </style>
+</head>
+<body>
+  <div id="pinScreen" class="pin-screen">
+    <div class="container">
+      <div class="pin-screen-box">
+        <div class="app-brand">
+          <span class="app-logo" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8v10l6-10h4l-6 12v10h-4V20l-6-12h4z" fill="#58a6ff"/><path d="M26 8l-8 14h5l-4 10 10-14h-5l7-10h-5z" fill="#58a6ff" opacity=".95"/></svg></span>
+          <h1>Vault <span class="brand-lite">lite</span><span class="brand-version">v0.1</span></h1>
+        </div>
+        <div id="pinCreate" class="card" style="display:none">
+          <p class="muted">Create a PIN to protect your vault.</p>
+          <form id="createPinForm">
+            <input type="password" id="newPin" class="pin-input" placeholder="••••" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off">
+            <input type="password" id="confirmPin" class="pin-input" placeholder="••••" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off">
+            <button type="submit" class="btn-primary">Create PIN</button>
+          </form>
+        </div>
+        <div id="pinEnter" class="card" style="display:none">
+          <form id="enterPinForm">
+            <input type="password" id="pinInput" class="pin-input" placeholder="••••" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off">
+            <button type="submit" class="btn-primary btn-unlock">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 1c-2.76 0-5 2.24-5 5v2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2h2V6c0-2.76-2.24-5-5-5zm-6 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+              Unlock
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="appContent" class="app-content container" style="display:none">
+    <div class="app-header">
+      <div class="app-brand">
+        <span class="app-logo" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8v10l6-10h4l-6 12v10h-4V20l-6-12h4z" fill="#58a6ff"/><path d="M26 8l-8 14h5l-4 10 10-14h-5l7-10h-5z" fill="#58a6ff" opacity=".95"/></svg></span>
+        <h1>Vault <span class="brand-lite">lite</span><span class="brand-version">v0.1</span></h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="modeToggle" class="mode-toggle active" title="Switch to Personal">
+          <span class="mode-icon" id="modeIcon"></span>
+          <span id="modeLabel">Work</span>
+        </button>
+        <button type="button" id="logoutBtn" class="btn-ghost btn-logout" title="Lock / Logout" aria-label="Logout">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button type="button" id="tabCredentials" class="active">Credentials</button>
+      <button type="button" id="tabInformations">Informations</button>
+      <button type="button" id="tabRecords" class="tab-records-personal" style="display:none">Records</button>
+    </div>
+
+    <div id="panelCredentials" class="tab-panel active">
+      <div class="card">
+        <form id="addForm">
+          <div class="form-row">
+            <input type="text" id="label" placeholder="Label (e.g. Gmail)" required>
+          </div>
+          <div class="form-row">
+            <input type="text" id="username" placeholder="Username / email" required>
+          </div>
+          <div class="form-row">
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+      <div class="toolbar">
+        <button type="button" class="btn-ghost" id="exportBtn">Export JSON</button>
+        <button type="button" class="btn-ghost" id="importBtn">Import JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+      </div>
+      <div class="entries">
+        <h2>Saved entries</h2>
+        <input type="text" id="search" class="search-bar" placeholder="Search by label or username...">
+        <div id="list"></div>
+      </div>
+    </div>
+
+    <div id="panelInformations" class="tab-panel">
+      <div class="card">
+        <form id="addInfoForm">
+          <div class="form-row">
+            <select id="infoType" class="info-type">
+              <option value="command">Unix command</option>
+              <option value="regex">Regex</option>
+              <option value="url">URL</option>
+              <option value="note">Note</option>
+            </select>
+            <input type="text" id="infoTitle" placeholder="Title (e.g. List large files)" style="flex:1" required>
+          </div>
+          <div class="form-row">
+            <textarea id="infoContent" placeholder="Content (command, regex, URL, or text...)"></textarea>
+          </div>
+          <div class="form-row">
+            <button type="submit" class="btn-primary">Add</button>
+          </div>
+        </form>
+      </div>
+      <div class="entries">
+        <h2>Saved informations</h2>
+        <input type="text" id="searchInfo" class="search-bar" placeholder="Search by title or content...">
+        <div id="infoList"></div>
+      </div>
+    </div>
+
+    <div id="panelRecords" class="tab-panel">
+      <div id="recordsDropZone" class="card records-drop-zone">
+        <form id="addRecordForm">
+          <div class="form-row">
+            <input type="text" id="recordDescription" placeholder="Description (e.g. Tax form 2024)" required style="flex:1">
+          </div>
+          <div class="form-row" style="align-items: center; gap: 0.5rem;">
+            <input type="file" id="recordFile" accept="*" required>
+            <button type="submit" id="recordUploadBtn" class="btn-primary" style="min-width: 100px;">Upload</button>
+          </div>
+          <div id="recordUploadFeedback" class="record-upload-feedback" aria-live="polite" role="status"></div>
+        </form>
+      </div>
+      <div class="toolbar">
+        <button type="button" class="btn-ghost" id="recordsExportBtn">Export JSON</button>
+        <button type="button" class="btn-ghost" id="recordsImportBtn">Import JSON</button>
+        <input type="file" id="recordsImportFile" accept=".json" style="display:none">
+      </div>
+      <div class="entries">
+        <h2>Documents</h2>
+        <input type="text" id="searchRecords" class="search-bar" placeholder="Search by description or filename...">
+        <div id="recordsList"></div>
+      </div>
+    </div>
+  </div>
+  <div id="recordPreviewModal" class="modal-overlay preview-modal hidden" aria-hidden="true">
+    <div class="card">
+      <div class="preview-title" id="recordPreviewTitle"></div>
+      <div class="preview-content" id="recordPreviewContent"></div>
+      <div class="modal-actions" style="margin-top: 0.75rem;">
+        <button type="button" class="btn-ghost" id="recordPreviewClose">Close</button>
+      </div>
+    </div>
+  </div>
+  <div id="modeSwitchPinModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="card">
+      <p id="modeSwitchPinTitle" class="muted" style="margin:0 0 1rem">Enter PIN to switch mode</p>
+      <input type="password" id="modeSwitchPinInput" class="pin-input" placeholder="••••" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" style="width:100%;margin-bottom:0.5rem;box-sizing:border-box">
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="modeSwitchPinCancel">Cancel</button>
+        <button type="button" class="btn-primary" id="modeSwitchPinVerify">Verify</button>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
