@@ -30,6 +30,9 @@
   var sessionEncryptionKey = null;
   var dataCache = {};
   var bmsLastData = { issues: [], baseUrl: '' };
+  var bmsFilteredCache = [];
+  var bmsCurrentPage = 0;
+  var BMS_PAGE_SIZE = 10;
   var bmsFilterSelected = { assignee: [], status: [], type: [], fixVersion: [], priority: [] };
   var bmsFiltersCache = [];
   var iconEdit = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M11.3 1.3l3.4 3.4-9.2 9.2L2 15l.1-3.5 9.2-9.2zM10 2L2 10l.6 2.4L12 6 10 2z"/></svg>';
@@ -1198,7 +1201,57 @@
       var cmp = ka < kb ? -1 : ka > kb ? 1 : 0;
       return desc ? -cmp : cmp;
     });
-    renderBMSCards(filtered);
+    bmsFilteredCache = filtered;
+    bmsCurrentPage = 0;
+    renderBMSCards();
+  }
+
+  function bmsTicketHtml(issue, baseUrl) {
+    var key = issue.key || '';
+    var summary = (issue.fields && issue.fields.summary) || '(No summary)';
+    var status = bmsIssueStatus(issue);
+    var type = bmsIssueType(issue);
+    var assignee = bmsIssueAssignee(issue);
+    var effort = bmsIssueEffort(issue);
+    var priority = bmsIssuePriority(issue);
+    var createdStr = bmsIssueCreatedFormatted(issue);
+    var updatedStr = bmsIssueUpdated(issue);
+    var dueStr = bmsIssueDueDateFormatted(issue);
+    var fvStr = bmsIssueFixVersions(issue);
+    var avStr = bmsIssueAffectVersions(issue);
+    var href = baseUrl ? baseUrl + '/browse/' + key : '#';
+    var statusLabelClass = 'bms-ticket-status-label' + (status ? ' ' + status.replace(/\s+/g, '_') : '');
+    var dotClass = bmsPriorityDotClass(priority);
+    var dotHtml = dotClass ? '<span class="' + dotClass + '" title="' + escapeHtml(priority || '') + '" aria-hidden="true"></span>' : '';
+    var typeIconUrl = bmsIssueTypeIconUrl(issue, baseUrl);
+    var typeHtml = type ? (typeIconUrl ? '<img class="bms-ticket-type-icon" src="' + escapeHtml(typeIconUrl) + '" alt="' + escapeHtml(type) + '" title="' + escapeHtml(type) + '" loading="lazy">' : '<span class="bms-ticket-type">' + escapeHtml(type) + '</span>') : '';
+    var headerLabels = typeHtml + (status ? '<span class="' + statusLabelClass + '">' + escapeHtml(status) + '</span>' : '');
+    var metaParts = [];
+    if (assignee) metaParts.push('<span class="bms-ticket-meta-item">Assignee: ' + escapeHtml(assignee) + '</span>');
+    if (createdStr) metaParts.push('<span class="bms-ticket-meta-item">Created: ' + escapeHtml(createdStr) + '</span>');
+    if (updatedStr) metaParts.push('<span class="bms-ticket-meta-item">Updated: ' + escapeHtml(updatedStr) + '</span>');
+    if (dueStr) metaParts.push('<span class="bms-ticket-meta-item">Due: ' + escapeHtml(dueStr) + '</span>');
+    if (fvStr) metaParts.push('<span class="bms-ticket-meta-item">fv: ' + escapeHtml(fvStr) + '</span>');
+    if (avStr) metaParts.push('<span class="bms-ticket-meta-item">av: ' + escapeHtml(avStr) + '</span>');
+    if (effort) metaParts.push('<span class="bms-ticket-meta-item bms-ticket-effort">' + escapeHtml(effort) + '</span>');
+    var newTag = bmsIssueCreatedToday(issue) ? '<span class="bms-ticket-new">new</span>' : '';
+    return '<a class="bms-ticket" href="' + (baseUrl ? escapeHtml(href) : '#') + '" target="_blank" rel="noopener" data-key="' + escapeHtml(key) + '">' +
+      newTag +
+      '<div class="bms-ticket-header">' +
+        '<span class="bms-ticket-key-wrap">' + dotHtml + '<span class="bms-ticket-key">' + escapeHtml(key) + '</span></span>' +
+        (headerLabels ? '<span class="bms-ticket-header-labels">' + headerLabels + '</span>' : '') +
+      '</div>' +
+      '<div class="bms-ticket-summary">' + escapeHtml(summary) + '</div>' +
+      '<div class="bms-ticket-meta">' + metaParts.join('') + '</div>' +
+    '</a>';
+  }
+
+  function changeBMSPage(delta) {
+    var total = bmsFilteredCache.length;
+    if (!total) return;
+    var totalPages = Math.ceil(total / BMS_PAGE_SIZE);
+    bmsCurrentPage = Math.max(0, Math.min(totalPages - 1, bmsCurrentPage + delta));
+    renderBMSCards();
   }
 
   function updateBMSViewToggle() {
@@ -1216,59 +1269,55 @@
     }
   }
 
-  function renderBMSCards(issues) {
+  function renderBMSCards() {
+    var issues = bmsFilteredCache;
     var listEl = document.getElementById('bmsList');
+    var pagEl = document.getElementById('bmsPagination');
     var countEl = document.getElementById('bmsCount');
     var baseUrl = (bmsLastData.baseUrl || '').replace(/\/$/, '');
     if (!listEl) return;
+    if (pagEl) {
+      pagEl.innerHTML = '';
+      pagEl.onclick = null;
+    }
     var isListView = getBMSView() === 'list';
     listEl.className = 'bms-list ' + (isListView ? 'bms-list-view' : 'bms-cards-grid');
-    if (countEl) countEl.textContent = issues.length + ' ticket' + (issues.length !== 1 ? 's' : '');
-    if (!issues.length) {
+    var total = issues.length;
+    if (!total) {
+      if (countEl) countEl.textContent = '';
       listEl.innerHTML = '<p class="empty">No tickets match the current filters.</p>';
       updateBMSViewToggle();
       return;
     }
+    var totalPages = Math.ceil(total / BMS_PAGE_SIZE);
+    if (bmsCurrentPage >= totalPages) bmsCurrentPage = Math.max(0, totalPages - 1);
+    if (bmsCurrentPage < 0) bmsCurrentPage = 0;
+    var start = bmsCurrentPage * BMS_PAGE_SIZE;
+    var pageIssues = issues.slice(start, Math.min(start + BMS_PAGE_SIZE, total));
+    var from = start + 1;
+    var to = start + pageIssues.length;
+    if (countEl) {
+      var countParts = [String(from) + '–' + String(to) + ' of ' + total + ' ticket' + (total !== 1 ? 's' : '')];
+      if (totalPages > 1) countParts.push('Page ' + String(bmsCurrentPage + 1) + ' of ' + String(totalPages));
+      countEl.textContent = countParts.join(' · ');
+    }
     var listHeader = isListView ? '<div class="bms-list-header"><span class="bms-list-header-key">Key</span><span class="bms-list-header-summary">Summary</span><span class="bms-list-header-meta">Details</span></div>' : '';
-    listEl.innerHTML = listHeader + issues.map(function (issue) {
-      var key = issue.key || '';
-      var summary = (issue.fields && issue.fields.summary) || '(No summary)';
-      var status = bmsIssueStatus(issue);
-      var type = bmsIssueType(issue);
-      var assignee = bmsIssueAssignee(issue);
-      var effort = bmsIssueEffort(issue);
-      var priority = bmsIssuePriority(issue);
-      var createdStr = bmsIssueCreatedFormatted(issue);
-      var updatedStr = bmsIssueUpdated(issue);
-      var dueStr = bmsIssueDueDateFormatted(issue);
-      var fvStr = bmsIssueFixVersions(issue);
-      var avStr = bmsIssueAffectVersions(issue);
-      var href = baseUrl ? baseUrl + '/browse/' + key : '#';
-      var statusLabelClass = 'bms-ticket-status-label' + (status ? ' ' + status.replace(/\s+/g, '_') : '');
-      var dotClass = bmsPriorityDotClass(priority);
-      var dotHtml = dotClass ? '<span class="' + dotClass + '" title="' + escapeHtml(priority || '') + '" aria-hidden="true"></span>' : '';
-      var typeIconUrl = bmsIssueTypeIconUrl(issue, baseUrl);
-      var typeHtml = type ? (typeIconUrl ? '<img class="bms-ticket-type-icon" src="' + escapeHtml(typeIconUrl) + '" alt="' + escapeHtml(type) + '" title="' + escapeHtml(type) + '" loading="lazy">' : '<span class="bms-ticket-type">' + escapeHtml(type) + '</span>') : '';
-      var headerLabels = typeHtml + (status ? '<span class="' + statusLabelClass + '">' + escapeHtml(status) + '</span>' : '');
-      var metaParts = [];
-      if (assignee) metaParts.push('<span class="bms-ticket-meta-item">Assignee: ' + escapeHtml(assignee) + '</span>');
-      if (createdStr) metaParts.push('<span class="bms-ticket-meta-item">Created: ' + escapeHtml(createdStr) + '</span>');
-      if (updatedStr) metaParts.push('<span class="bms-ticket-meta-item">Updated: ' + escapeHtml(updatedStr) + '</span>');
-      if (dueStr) metaParts.push('<span class="bms-ticket-meta-item">Due: ' + escapeHtml(dueStr) + '</span>');
-      if (fvStr) metaParts.push('<span class="bms-ticket-meta-item">fv: ' + escapeHtml(fvStr) + '</span>');
-      if (avStr) metaParts.push('<span class="bms-ticket-meta-item">av: ' + escapeHtml(avStr) + '</span>');
-      if (effort) metaParts.push('<span class="bms-ticket-meta-item bms-ticket-effort">' + escapeHtml(effort) + '</span>');
-      var newTag = bmsIssueCreatedToday(issue) ? '<span class="bms-ticket-new">new</span>' : '';
-      return '<a class="bms-ticket" href="' + (baseUrl ? escapeHtml(href) : '#') + '" target="_blank" rel="noopener" data-key="' + escapeHtml(key) + '">' +
-        newTag +
-        '<div class="bms-ticket-header">' +
-          '<span class="bms-ticket-key-wrap">' + dotHtml + '<span class="bms-ticket-key">' + escapeHtml(key) + '</span></span>' +
-          (headerLabels ? '<span class="bms-ticket-header-labels">' + headerLabels + '</span>' : '') +
-        '</div>' +
-        '<div class="bms-ticket-summary">' + escapeHtml(summary) + '</div>' +
-        '<div class="bms-ticket-meta">' + metaParts.join('') + '</div>' +
-      '</a>';
+    listEl.innerHTML = listHeader + pageIssues.map(function (issue) {
+      return bmsTicketHtml(issue, baseUrl);
     }).join('');
+    if (pagEl && totalPages > 1) {
+      pagEl.innerHTML = '<div class="bms-pagination-inner">' +
+        '<button type="button" class="btn-ghost bms-page-prev"' + (bmsCurrentPage <= 0 ? ' disabled' : '') + '>Previous</button>' +
+        '<span class="bms-page-info muted">Page ' + (bmsCurrentPage + 1) + ' of ' + totalPages + '</span>' +
+        '<button type="button" class="btn-ghost bms-page-next"' + (bmsCurrentPage >= totalPages - 1 ? ' disabled' : '') + '>Next</button>' +
+        '</div>';
+      pagEl.onclick = function (e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        if (btn.classList.contains('bms-page-prev')) changeBMSPage(-1);
+        if (btn.classList.contains('bms-page-next')) changeBMSPage(1);
+      };
+    }
     updateBMSViewToggle();
   }
 
@@ -1365,7 +1414,11 @@
   function renderBMSList() {
     var listEl = document.getElementById('bmsList');
     var hintEl = document.getElementById('bmsConfigHint');
+    var pagEl = document.getElementById('bmsPagination');
     if (!listEl) return;
+    if (pagEl) { pagEl.innerHTML = ''; pagEl.onclick = null; }
+    bmsFilteredCache = [];
+    bmsCurrentPage = 0;
     listEl.innerHTML = '<div class="bms-loading" role="status" aria-live="polite"><div class="bms-loading-spinner" aria-hidden="true"></div><span class="bms-loading-text">Loading…</span></div>';
     if (hintEl) hintEl.textContent = '';
     var countEl = document.getElementById('bmsCount'); if (countEl) countEl.textContent = '';
@@ -1379,6 +1432,7 @@
       if (data.hint && hintEl) hintEl.textContent = data.hint;
       if (data.error) {
         listEl.innerHTML = '<p class="empty">' + escapeHtml(data.error) + '</p>';
+        if (pagEl) { pagEl.innerHTML = ''; pagEl.onclick = null; }
         return;
       }
       var issues = (data.issues || []).filter(function (issue) {
@@ -1389,6 +1443,7 @@
       bmsLastData = { issues: issues, baseUrl: baseUrl };
       if (!issues.length) {
         listEl.innerHTML = '<p class="empty">No Jira tickets found. Try a different JQL or configure the server.</p>';
+        if (pagEl) { pagEl.innerHTML = ''; pagEl.onclick = null; }
         return;
       }
       populateBMSFilters(issues);
@@ -1398,6 +1453,7 @@
       showBMSContent();
       var msg = err.name === 'AbortError' ? 'Request timed out. Check Jira configuration or try again.' : (err.message || 'Network error');
       listEl.innerHTML = '<p class="empty">Failed to load Jira tickets: ' + escapeHtml(msg) + '</p>';
+      if (pagEl) { pagEl.innerHTML = ''; pagEl.onclick = null; }
     });
   }
 

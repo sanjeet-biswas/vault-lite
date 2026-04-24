@@ -565,6 +565,10 @@
     .bms-count { font-size: 0.9rem; }
     .bms-count-view-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 0.25rem; }
     .bms-count-view-row .bms-count { margin: 0; }
+    .bms-pagination { margin-top: 0.75rem; display: flex; justify-content: center; align-items: center; }
+    .bms-pagination-inner { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+    .bms-pagination .bms-page-info { font-size: 0.85rem; }
+    .bms-pagination button:disabled { opacity: 0.45; cursor: not-allowed; }
     .bms-list.bms-list-view {
       display: flex; flex-direction: column; grid-template-columns: none; gap: 0;
       background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
@@ -924,6 +928,7 @@
         <p id="bmsConfigHint" class="muted bms-config-hint"></p>
       </div>
       <div id="bmsList" class="bms-list bms-cards-grid"></div>
+      <div id="bmsPagination" class="bms-pagination" role="navigation" aria-label="BMS ticket pages"></div>
       </div>
     </div>
 
