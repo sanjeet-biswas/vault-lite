@@ -1,0 +1,15 @@
+# Test Jira tickets API from Postman or terminal
+# Server must be running: node server.js (port 3080)
+# Server calls https://tms.netcracker.com/rest/api/2/search with Authorization: Bearer {JIRA_API_TOKEN}
+# Env: JIRA_API_TOKEN (required), JIRA_DOMAIN (optional, default: tms.netcracker.com)
+#
+# Postman: Import -> Raw text -> paste ONE of the curl lines below (no # comments)
+
+# --- Copy for Postman (default JQL) ---
+curl -X GET "http://localhost:3080/api/jira/tickets"
+
+# --- Copy for Postman (custom JQL) ---
+curl -X GET "http://localhost:3080/api/jira/tickets?jql=assignee%3DcurrentUser()%20ORDER%20BY%20updated%20DESC"
+
+# --- Direct TMS (for Postman – use your token); server proxy does not require auth ---
+# curl -X GET "https://tms.netcracker.com/rest/api/2/search?maxResults=10&fields=summary,status,updated&jql=order%20by%20updated%20DESC" -H "Authorization: Bearer YOUR_JIRA_API_TOKEN" -H "Accept: application/json"

@@ -69,6 +69,7 @@
     .brand-version { font-size: 0.75rem; color: var(--muted); margin-left: 0.25rem; }
     .app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.25rem; flex-wrap: wrap; gap: 0.75rem; }
     .form-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; color: var(--muted); }
     .form-row input[type="text"],
     .form-row input[type="password"] { flex: 1; min-width: 120px; }
     .records-drop-zone input[type="file"] { width: 100%; display: block; box-sizing: border-box; }
@@ -170,6 +171,12 @@
       border: 1px solid var(--danger);
     }
     .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-apply {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-apply:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
     .entries h2 { font-size: 1.1rem; margin: 0 0 0.5rem; }
     .search-bar {
       width: 100%;
@@ -186,6 +193,71 @@
       border-radius: 6px;
       margin-bottom: 0.5rem;
     }
+    .entry-cred {
+      display: grid;
+      grid-template-columns: 150px 18px 10em 26px 18px 10em 26px auto;
+      align-items: center;
+      gap: 0 0.25rem;
+    }
+    .entry-cred .entry-desc {
+      font-weight: 500;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .entry-cred .entry-icon { display: inline-flex; flex-shrink: 0; color: var(--muted); }
+    .entry-cred .entry-icon .btn-icon { width: 14px; height: 14px; }
+    .entry-cred .entry-user-text,
+    .entry-cred .entry-pass-text {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-family: ui-monospace, monospace;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .entry-cred .copy-user,
+    .entry-cred .copy-pass,
+    .cred-card .copy-user,
+    .cred-card .copy-pass {
+      border: none;
+      padding: 0.3rem 0.4rem;
+      min-width: 0;
+      cursor: pointer;
+      background: var(--surface);
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, color 0.15s ease;
+    }
+    .entry-cred .copy-user:hover,
+    .entry-cred .copy-pass:hover,
+    .cred-card .copy-user:hover,
+    .cred-card .copy-pass:hover { border: none; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }
+    .entry-cred .copy-user:active,
+    .entry-cred .copy-pass:active,
+    .cred-card .copy-user:active,
+    .cred-card .copy-pass:active {
+      border: none;
+      transform: scale(0.92);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .copy-user.copy-success,
+    .copy-pass.copy-success,
+    .copy-content.copy-success {
+      background: var(--success) !important;
+      color: #fff !important;
+      border: none !important;
+    }
+    .copy-user.copy-success .btn-icon,
+    .copy-pass.copy-success .btn-icon,
+    .copy-content.copy-success .btn-icon { color: inherit; }
+    .entry-cred .copy-user { margin-left: -0.15rem; }
+    .entry-cred .copy-user .btn-icon,
+    .entry-cred .copy-pass .btn-icon,
+    .cred-card .copy-user .btn-icon,
+    .cred-card .copy-pass .btn-icon { width: 15px; height: 15px; }
     .entry-info { flex: 1; min-width: 0; }
     .entry-title { font-weight: 500; margin-bottom: 0.25rem; }
     .entry-meta { font-size: 0.8rem; color: var(--muted); }
@@ -199,13 +271,19 @@
       transition: border-color 0.15s, box-shadow 0.15s; min-height: 0; cursor: pointer;
     }
     .record-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(88, 166, 255, 0.12); }
+    .records-cards-grid .record-card { font-size: 0.875em; }
     .record-card .record-card-title { font-weight: 500; font-size: 0.875rem; margin-bottom: 0.2rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; word-break: break-word; }
+    .records-cards-grid .record-card .record-card-title { font-size: 0.8rem; }
     .record-card .record-card-meta-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
     .record-card .record-card-meta { font-size: 0.7rem; color: var(--muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .records-cards-grid .record-card .record-card-meta { font-size: 0.65rem; }
     .record-card .record-card-date { font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
+    .records-cards-grid .record-card .record-card-date { font-size: 0.6rem; }
     .record-card .record-card-actions { display: flex; gap: 0.25rem; flex-wrap: nowrap; justify-content: flex-end; margin-top: auto; padding-top: 0.25rem; border-top: 1px solid var(--border); }
     .record-card .record-card-actions button { padding: 0.35rem; font-size: 0.75rem; }
+    .records-cards-grid .record-card .record-card-actions button { padding: 0.3rem; font-size: 0.7rem; }
     .record-card .record-card-actions .btn-icon { width: 14px; height: 14px; }
+    .records-cards-grid .record-card .record-card-actions .btn-icon { width: 12px; height: 12px; }
     .records-list { display: flex; flex-direction: column; gap: 0.5rem; }
     .record-list-item {
       display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
@@ -220,6 +298,28 @@
     .record-list-item .record-item-date { font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
     .record-list-item .record-item-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
     .record-list-item .record-item-actions button { padding: 0.35rem; font-size: 0.8rem; }
+    .credentials-view-toolbar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    .credentials-view-toolbar .search-bar { flex: 1; min-width: 200px; margin-bottom: 0; }
+    .credentials-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+    .cred-card {
+      display: flex; flex-direction: column; align-items: stretch; text-align: left;
+      padding: 0.75rem 0.875rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      transition: border-color 0.15s, box-shadow 0.15s; min-height: 0;
+    }
+    .cred-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(88, 166, 255, 0.12); }
+    .cred-card .cred-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; min-height: 0; }
+    .cred-card .cred-card-header .cred-card-label { font-weight: 500; font-size: 0.9rem; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+    .cred-card .cred-card-delete { border: none; padding: 0.2rem; flex-shrink: 0; margin: -0.2rem -0.2rem 0 0; color: var(--danger); }
+    .cred-card .cred-card-delete:hover { color: var(--danger); border: none; opacity: 0.9; }
+    .cred-card .cred-card-delete .btn-icon { width: 14px; height: 14px; }
+    .cred-card .cred-card-row { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--muted); }
+    .cred-card .cred-card-row:last-of-type { margin-bottom: 0; }
+    .cred-card .cred-card-row .cred-icon { flex-shrink: 0; display: inline-flex; }
+    .cred-card .cred-card-row .cred-icon .btn-icon { width: 12px; height: 12px; }
+    .cred-card .cred-card-row .cred-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; }
+    .cred-card .cred-card-row .toggle-username { border: none; padding: 0.2rem; }
+    .cred-card .cred-card-row .toggle-username:hover { border: none; }
+    .cred-card .cred-card-row .toggle-username .btn-icon { width: 12px; height: 12px; }
     .records-view-toolbar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; }
     .records-view-toolbar .search-bar { flex: 1; min-width: 200px; margin-bottom: 0; }
     .view-toggle { display: flex; gap: 0.25rem; }
@@ -260,6 +360,33 @@
       animation: record-spin 0.8s linear infinite;
     }
     .records-loader-overlay .loader-text { color: var(--text); font-size: 0.95rem; }
+    .bms-loading {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 1rem; padding: 2.5rem 1rem; min-height: 120px; text-align: center;
+      width: 100%; justify-self: center; grid-column: 1 / -1;
+    }
+    .bms-loading-spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: record-spin 0.8s linear infinite;
+    }
+    .bms-loading-text { color: var(--muted); font-size: 0.9rem; }
+    .bms-initial-loader {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 280px; gap: 1rem; padding: 2rem;
+    }
+    .bms-initial-loader.hidden { display: none !important; }
+    .bms-initial-loader-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: record-spin 0.8s linear infinite;
+    }
+    .bms-initial-loader-text { color: var(--muted); font-size: 0.95rem; }
+    .bms-content.hidden { display: none !important; }
     .empty { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
     .toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
     .pin-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
@@ -300,6 +427,54 @@
     }
     .app-content.hidden { display: none !important; }
     .pin-screen.hidden { display: none !important; }
+    /* Floating chatbot */
+    .vault-chatbot-wrap { position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 9999; font-family: inherit; }
+    .vault-chatbot-wrap.hidden { display: none !important; }
+    .vault-chatbot-btn {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent); color: #fff; border: none; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(88, 166, 255, 0.4);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .vault-chatbot-btn:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(88, 166, 255, 0.5); }
+    .vault-chatbot-btn svg { width: 26px; height: 26px; }
+    .vault-chatbot-panel {
+      position: absolute; right: 0; bottom: 60px; width: 460px; max-width: calc(100vw - 2rem);
+      max-height: 520px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; overflow: hidden; font-size: 0.9rem;
+    }
+    .vault-chatbot-panel.hidden { display: none !important; }
+    .vault-chatbot-header {
+      padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); font-weight: 600; font-size: 0.95rem;
+    }
+    .vault-chatbot-header button { padding: 0.35rem; border: none; background: none; color: var(--muted); cursor: pointer; border-radius: 6px; }
+    .vault-chatbot-header button:hover { color: var(--text); background: var(--surface); }
+    .vault-chatbot-messages {
+      flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0.75rem; min-height: 120px; max-height: 260px;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .vault-chatbot-msg { font-size: 0.9rem; line-height: 1.4; }
+    .vault-chatbot-msg.user { align-self: flex-end; color: var(--muted); max-width: 85%; }
+    .vault-chatbot-msg.bot { align-self: flex-start; }
+    .vault-chatbot-msg.bot .chatbot-section { margin-top: 0.5rem; }
+    .vault-chatbot-msg.bot .chatbot-section-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 0.35rem; }
+    .vault-chatbot-msg.bot .chatbot-item { font-size: 0.85rem; padding: 0.55rem 0.6rem; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 0.4rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.65rem; }
+    .vault-chatbot-msg.bot .chatbot-item:last-child { margin-bottom: 0; }
+    .vault-chatbot-msg.bot .chatbot-item-text { flex: 1; min-width: 0; overflow-wrap: break-word; word-break: break-word; }
+    .vault-chatbot-msg.bot .chatbot-item-main { min-width: 0; flex: 1; }
+    .vault-chatbot-msg.bot .chatbot-item-header { font-weight: 600; margin: 0 0 0.15rem; color: var(--text); }
+    .vault-chatbot-msg.bot .chatbot-item-desc { color: var(--muted); font-size: 0.82rem; line-height: 1.35; }
+    .vault-chatbot-msg.bot .chatbot-copy-btn { flex-shrink: 0; padding: 0.25rem; border: none; background: none; color: var(--muted); cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+    .vault-chatbot-msg.bot .chatbot-copy-btn:hover { color: var(--accent); background: var(--surface); }
+    .vault-chatbot-msg.bot .chatbot-copy-btn svg { width: 14px; height: 14px; }
+    .vault-chatbot-msg.bot .chatbot-empty { font-size: 0.85rem; color: var(--muted); }
+    .vault-chatbot-input-wrap { display: flex; gap: 0; padding: 0.75rem; border-top: 1px solid var(--border); background: var(--bg); }
+    .vault-chatbot-input-wrap input { flex: 1; margin: 0; }
+    .vault-chatbot-input-wrap button { flex-shrink: 0; }
     .tabs { display: flex; gap: 0; margin: 0 0 1.25rem; border-bottom: 1px solid var(--border); }
     .tabs button {
       padding: 0.6rem 1.25rem;
@@ -316,6 +491,173 @@
     .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+    .bms-project-row { margin-bottom: 0.5rem; display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: flex-end; }
+    .bms-filters-row { margin-bottom: 0.5rem; display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: flex-end; }
+    .bms-project-select { min-width: 180px; }
+    .bms-saved-filter-select { min-width: 200px; max-width: 320px; }
+    .bms-jql-favourites { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+    .bms-favourites-label { font-size: 0.8rem; color: var(--muted); }
+    .bms-favourites-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .bms-favourite-chip { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.82rem; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+    .bms-favourite-chip:hover { border-color: var(--accent); background: var(--surface); }
+    .bms-favourite-chip-remove { padding: 0 0.15rem; font-size: 1rem; line-height: 1; color: var(--muted); }
+    .bms-favourite-chip-remove:hover { color: var(--danger); }
+    .bms-add-favourite { font-size: 0.85rem; }
+    .bms-toolbar { display: flex; gap: 0.5rem; align-items: flex-start; flex-wrap: wrap; }
+    .bms-jql-wrap { position: relative; flex: 1; min-width: 520px; max-width: 100%; }
+    .bms-jql-input { margin-bottom: 0; min-height: 2.25rem; }
+    .bms-jql-suggestions {
+      position: absolute; left: 0; right: 0; top: 100%; margin-top: 2px;
+      max-height: 280px; overflow-y: auto; z-index: 100;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35); list-style: none; padding: 0.25rem 0; margin: 0;
+    }
+    .bms-jql-suggestions.hidden { display: none !important; }
+    .bms-jql-suggestion { padding: 0.5rem 0.75rem; font-size: 0.9rem; cursor: pointer; color: var(--text); border-radius: 4px; margin: 0 0.25rem; }
+    .bms-jql-suggestion:hover { background: var(--bg); }
+    .bms-jql-suggestion.highlighted { background: var(--accent); color: #0f1419; }
+    .bms-jql-suggestion-cat { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem; }
+    .bms-config-hint { margin: 0.5rem 0 0; font-size: 0.9rem; }
+    .bms-search-row { margin-bottom: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+    .bms-search-row .bms-search-fullwidth { flex: 1; min-width: 180px; }
+    .bms-search-row .bms-sort-inline { margin: 0; display: flex; align-items: center; gap: 0.35rem; }
+    .bms-search-fullwidth { width: 100%; max-width: none; box-sizing: border-box; }
+    .bms-filters {
+      display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: flex-end;
+      margin-bottom: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);
+    }
+    .bms-filters-inline-row {
+      display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1rem;
+      margin-top: 0.75rem; margin-bottom: 0.5rem;
+    }
+    .bms-filter-label { display: flex; flex-direction: column; gap: 0.25rem; }
+    .bms-filter-label span { font-size: 0.75rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
+    .bms-filter-select {
+      min-width: 120px; padding: 0.4rem 0.6rem; font-size: 0.9rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+    }
+    .bms-filter-select:focus { outline: none; border-color: var(--accent); }
+    .bms-filter-multiselect-wrap { position: relative; min-width: 140px; }
+    .bms-filter-multiselect-trigger {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.35rem;
+      min-width: 140px; padding: 0.4rem 0.6rem; font-size: 0.9rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      cursor: pointer; text-align: left;
+    }
+    .bms-filter-multiselect-trigger:hover { border-color: var(--muted); }
+    .bms-filter-multiselect-trigger.open { border-color: var(--accent); }
+    .bms-filter-multiselect-trigger .bms-filter-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bms-filter-multiselect-trigger .bms-filter-trigger-count { font-size: 0.75rem; color: var(--accent); flex-shrink: 0; }
+    .bms-filter-multiselect-trigger .bms-filter-trigger-arrow { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
+    .bms-filter-multiselect-dropdown {
+      position: absolute; left: 0; top: 100%; margin-top: 2px; min-width: 180px; max-height: 220px;
+      overflow-y: auto; z-index: 50; padding: 0.25rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    .bms-filter-multiselect-dropdown.hidden { display: none !important; }
+    .bms-filter-multiselect-option { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.5rem; cursor: pointer; border-radius: 4px; font-size: 0.88rem; }
+    .bms-filter-multiselect-option:hover { background: var(--bg); }
+    .bms-filter-multiselect-option input { margin: 0; cursor: pointer; }
+    .bms-clear-filters { font-size: 0.85rem; margin-left: 0.25rem; }
+    .bms-view-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .bms-view-toolbar .bms-count { margin: 0; }
+    .bms-count { font-size: 0.9rem; }
+    .bms-count-view-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 0.25rem; }
+    .bms-count-view-row .bms-count { margin: 0; }
+    .bms-list.bms-list-view {
+      display: flex; flex-direction: column; grid-template-columns: none; gap: 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    }
+    .bms-list.bms-list-view .bms-ticket {
+      flex-direction: row; align-items: center; gap: 1.25rem; padding: 0.75rem 1.25rem;
+      border-radius: 0; border: none; border-bottom: 1px solid var(--border); background: transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .bms-list.bms-list-view .bms-ticket:last-child { border-bottom: none; }
+    .bms-list.bms-list-view .bms-ticket:hover {
+      background: var(--bg); transform: none; box-shadow: none;
+      border-bottom-color: var(--border);
+    }
+    .bms-list.bms-list-view .bms-ticket-header {
+      flex-shrink: 0; margin-bottom: 0; width: 130px; min-width: 130px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
+    }
+    .bms-list.bms-list-view .bms-ticket-header .bms-ticket-key-wrap { margin-bottom: 0; }
+    .bms-list.bms-list-view .bms-ticket-header .bms-ticket-key-wrap { white-space: nowrap; }
+    .bms-list.bms-list-view .bms-ticket-header .bms-ticket-header-labels { margin-top: 0.15rem; }
+    .bms-list.bms-list-view .bms-ticket-summary {
+      flex: 1; min-width: 0; font-size: 0.78rem; margin-bottom: 0; line-height: 1.35;
+      overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+    }
+    .bms-list.bms-list-view .bms-ticket-meta {
+      flex: 0 0 auto; width: 280px; min-width: 200px; font-size: 0.75rem;
+      display: flex; flex-wrap: wrap; gap: 0 0.9rem; align-items: center;
+    }
+    .bms-list.bms-list-view .bms-ticket-meta .bms-ticket-meta-item { white-space: nowrap; }
+    .bms-list-header {
+      display: flex; align-items: center; gap: 1.25rem; padding: 0.5rem 1.25rem;
+      background: var(--bg); border-bottom: 1px solid var(--border); font-size: 0.7rem;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+    }
+    .bms-list-header .bms-list-header-key { width: 130px; min-width: 130px; }
+    .bms-list-header .bms-list-header-summary { flex: 1; min-width: 0; }
+    .bms-list-header .bms-list-header-meta { width: 280px; min-width: 200px; }
+    .bms-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .bms-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.75rem; }
+    .bms-ticket {
+      position: relative;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      padding: 1rem 1.15rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); text-decoration: none;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    }
+    .bms-ticket-new {
+      position: absolute; top: 0; left: 0;
+      font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 0.15rem 0.4rem; border-radius: 10px 0 4px 0;
+      background: #d4a017; color: #0f1419;
+    }
+    .bms-ticket:hover {
+      border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      transform: translateY(-1px);
+    }
+    .bms-ticket-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .bms-ticket-key-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .bms-priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .bms-priority-dot-blocker { background: #f85149; }
+    .bms-priority-dot-critical { background: #e67e22; }
+    .bms-priority-dot-major { background: #f0e68c; }
+    .bms-priority-dot-minor { background: #3fb950; }
+    .bms-priority-dot-highest { background: #f85149; }
+    .bms-priority-dot-high { background: #e67e22; }
+    .bms-priority-dot-medium { background: #f0e68c; }
+    .bms-priority-dot-low { background: #3fb950; }
+    .bms-priority-dot-lowest { background: #3fb950; }
+    .bms-ticket-key { font-weight: 700; font-size: 0.9rem; color: var(--accent); flex-shrink: 0; }
+    .bms-ticket-header-labels { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+    .bms-ticket-type-icon { width: 16px; height: 16px; vertical-align: middle; object-fit: contain; flex-shrink: 0; }
+    .bms-ticket-type { font-size: 0.62rem; padding: 0.15rem 0.35rem; border-radius: 3px; background: var(--border); color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .bms-ticket-status-label { font-size: 0.62rem; padding: 0.15rem 0.35rem; border-radius: 3px; background: var(--border); color: var(--muted); }
+    .bms-ticket-status-label.In_Progress { background: #1a3a5c; color: #58a6ff; }
+    .bms-ticket-status-label.Done { background: #1a3d2e; color: #3fb950; }
+    .bms-ticket-status-label.Open { background: #2d3a4f; color: var(--muted); }
+    .bms-ticket-status-label.To_Do { background: #2d3a4f; color: var(--muted); }
+    .bms-ticket-summary { font-size: 0.82rem; line-height: 1.35; color: var(--text); font-weight: 500; }
+    .bms-ticket-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; font-size: 0.78rem; color: var(--muted); }
+    .bms-ticket-meta-item { white-space: nowrap; }
+    .bms-ticket-meta-item.bms-ticket-effort { padding: 0.15rem 0.4rem; border-radius: 4px; background: var(--bg); }
+    .bms-ticket-assignee { font-size: 0.8rem; color: var(--muted); }
+    .bms-ticket-effort { font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: var(--bg); color: var(--muted); }
+    .bms-ticket-priority { font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 4px; }
+    .bms-ticket-priority.High { background: rgba(248,81,73,0.2); color: #f85149; }
+    .bms-ticket-priority.Highest { background: rgba(248,81,73,0.3); color: #f85149; }
+    .bms-ticket-priority.Medium { background: rgba(210,153,34,0.2); color: #d29922; }
+    .bms-ticket-priority.Low { background: rgba(63,185,80,0.2); color: #3fb950; }
+    .bms-ticket-priority.Lowest { background: rgba(63,185,80,0.25); color: #3fb950; }
+    .bms-ticket-updated { font-size: 0.8rem; color: var(--muted); }
+    .bms-ticket-due { font-size: 0.8rem; color: var(--muted); }
     textarea {
       width: 100%;
       min-height: 80px;
@@ -364,7 +706,12 @@
     }
     .mode-toggle:hover { color: var(--text); border-color: var(--text); }
     .mode-toggle.active { border-color: var(--accent); color: var(--accent); }
-    .mode-toggle .mode-icon { width: 18px; height: 18px; flex-shrink: 0; }
+    .mode-toggle #modeIcon { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .mode-toggle .mode-icon-wrap { display: inline-flex; align-items: center; }
+    .mode-toggle .mode-icon-wrap .mode-icon { width: 18px; height: 18px; flex-shrink: 0; }
+    .mode-toggle .mode-icon-wrap.mode-icon-arrow .mode-icon { width: 14px; height: 14px; opacity: 0.85; }
+    .mode-toggle .mode-icon-wrap:not(.active) .mode-icon { opacity: 0.5; }
+    .mode-toggle .mode-icon-wrap.active .mode-icon { opacity: 1; }
     .header-actions { display: flex; align-items: center; gap: 0.5rem; }
     .btn-logout {
       width: 36px; height: 36px; padding: 0; border-radius: 50%;
@@ -396,9 +743,33 @@
     .preview-modal #recordPreviewClose:hover { background: var(--danger); color: #fff; opacity: 0.9; }
     .records-drop-zone { transition: border-color 0.15s, background-color 0.15s; padding-bottom: 0.5rem; }
     .records-drop-zone.drag-over { border-color: var(--accent); background: rgba(88, 166, 255, 0.08); }
+    .notification-bar {
+      position: fixed; left: 0; right: 0; top: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center; padding: 0.75rem 3rem 0.75rem 1rem;
+      min-height: 48px; box-sizing: border-box; font-size: 0.9rem; font-weight: 500; text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transform: translateY(-100%); opacity: 0;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      pointer-events: none;
+    }
+    .notification-bar.visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .notification-bar.success { background: var(--success); color: #fff; }
+    .notification-bar.error { background: var(--danger); color: #fff; }
+    .notification-bar.info { background: var(--accent); color: #fff; }
+    .notification-bar #notificationMessage { flex: 1; }
+    .notification-bar .notification-close {
+      position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+      background: transparent; border: none; color: inherit; opacity: 0.9; cursor: pointer;
+      padding: 0.35rem; line-height: 1; font-size: 1.35rem;
+    }
+    .notification-bar .notification-close:hover { opacity: 1; }
   </style>
 </head>
 <body>
+  <div id="notificationBar" class="notification-bar" role="alert" aria-live="polite" aria-hidden="true">
+    <span id="notificationMessage"></span>
+    <button type="button" class="notification-close" id="notificationClose" aria-label="Dismiss">&times;</button>
+  </div>
   <div id="pinScreen" class="pin-screen">
     <div class="container">
       <div class="pin-screen-box">
@@ -433,19 +804,27 @@
         <h1>Vault <span class="brand-lite">lite</span><span class="brand-version">v0.1</span></h1>
       </div>
       <div class="header-actions">
-        <button type="button" id="modeToggle" class="mode-toggle active" title="Switch to Personal">
-          <span class="mode-icon" id="modeIcon"></span>
-          <span id="modeLabel">Work</span>
+        <button type="button" id="modeToggle" class="mode-toggle active" title="Switch to Personal" aria-label="Switch mode">
+          <span id="modeIcon"></span>
         </button>
+        <button type="button" id="backupBtn" class="btn-ghost" title="Backup (export)" aria-label="Backup">
+          <svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 12V7H5l3-4 3 4H8v5zm-6 1h12v2H2v-2z"/></svg>
+        </button>
+        <button type="button" id="restoreBtn" class="btn-ghost" title="Restore (import)" aria-label="Restore">
+          <svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 10.5l4-4H10V2H6v4.5H4L8 10.5zM2 12v2h12v-2H2z"/></svg>
+        </button>
+        <input type="file" id="restoreFile" accept=".json" style="display:none">
         <button type="button" id="logoutBtn" class="btn-ghost btn-logout" title="Lock / Logout" aria-label="Logout">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
         </button>
       </div>
     </div>
     <div class="tabs">
+      <button type="button" id="tabBMS" class="tab-bms-work" style="display:none">BMS</button>
       <button type="button" id="tabCredentials" class="active">Credentials</button>
       <button type="button" id="tabInformations">Informations</button>
       <button type="button" id="tabRecords" class="tab-records-personal" style="display:none">Records</button>
+      <button type="button" id="tabBot">Bot</button>
     </div>
 
     <div id="panelCredentials" class="tab-panel active">
@@ -463,15 +842,108 @@
           </div>
         </form>
       </div>
-      <div class="toolbar">
-        <button type="button" class="btn-ghost" id="exportBtn">Export JSON</button>
-        <button type="button" class="btn-ghost" id="importBtn">Import JSON</button>
-        <input type="file" id="importFile" accept=".json" style="display:none">
-      </div>
       <div class="entries">
         <h2>Saved entries</h2>
-        <input type="text" id="search" class="search-bar" placeholder="Search by label or username...">
+        <div class="credentials-view-toolbar">
+          <input type="text" id="search" class="search-bar" placeholder="Search by label or username...">
+          <div class="view-toggle" role="group" aria-label="Credentials view mode">
+            <button type="button" id="credentialsViewToggle" class="btn-ghost" title="Switch view" aria-label="Switch between list and grid view"></button>
+          </div>
+        </div>
         <div id="list"></div>
+      </div>
+    </div>
+
+    <div id="panelBMS" class="tab-panel">
+      <div id="bmsInitialLoader" class="bms-initial-loader" role="status" aria-live="polite">
+        <div class="bms-initial-loader-spinner" aria-hidden="true"></div>
+        <span class="bms-initial-loader-text">Loading…</span>
+      </div>
+      <div id="bmsContent" class="bms-content hidden">
+      <div class="card">
+        <div class="bms-filters-row">
+          <label class="bms-filter-label">
+            <span>Jira filters</span>
+            <select id="bmsSavedFilter" class="bms-filter-select bms-saved-filter-select" title="Choose a saved filter from Jira (tms.netcracker.com)">
+              <option value="">Loading…</option>
+            </select>
+          </label>
+        </div>
+        <div class="bms-toolbar">
+          <div id="bmsJqlWrap" class="bms-jql-wrap">
+            <input type="text" id="bmsJql" class="search-bar bms-jql-input" placeholder="Type JQL or pick a suggestion…" autocomplete="off" aria-autocomplete="list" aria-controls="bmsJqlSuggestions" aria-expanded="false">
+            <div id="bmsJqlSuggestions" class="bms-jql-suggestions hidden" role="listbox" aria-label="JQL suggestions"></div>
+          </div>
+          <button type="button" id="bmsRefresh" class="btn-apply" title="Apply JQL and load tickets">Apply</button>
+        </div>
+        <div id="bmsJqlFavourites" class="bms-jql-favourites">
+          <span class="bms-favourites-label">Favourites:</span>
+          <div id="bmsJqlFavouritesList" class="bms-favourites-list"></div>
+          <button type="button" id="bmsAddFavourite" class="btn-ghost bms-add-favourite" title="Add current JQL to favourites">+ Add</button>
+        </div>
+        <div class="bms-count-view-row">
+          <p id="bmsCount" class="bms-count muted"></p>
+          <div class="view-toggle" role="group" aria-label="BMS view mode">
+            <button type="button" id="bmsViewToggle" class="btn-ghost" title="Switch view" aria-label="Switch between list and grid view"></button>
+          </div>
+        </div>
+        <div id="bmsFilters" class="bms-filters-inline-row">
+          <label class="bms-filter-label">
+            <span>Assignee</span>
+            <div id="bmsFilterAssigneeWrap" class="bms-filter-multiselect-wrap"></div>
+          </label>
+          <label class="bms-filter-label">
+            <span>Status</span>
+            <div id="bmsFilterStatusWrap" class="bms-filter-multiselect-wrap"></div>
+          </label>
+          <label class="bms-filter-label">
+            <span>Type</span>
+            <div id="bmsFilterTypeWrap" class="bms-filter-multiselect-wrap"></div>
+          </label>
+          <label class="bms-filter-label bms-sort-inline">
+            <span>Sort by</span>
+            <select id="bmsSortBy" class="bms-filter-select" title="Sort tickets">
+              <option value="updated">Updated date</option>
+              <option value="created">Created date</option>
+              <option value="duedate">Due date</option>
+            </select>
+          </label>
+          <label class="bms-filter-label bms-sort-inline">
+            <span>Order</span>
+            <select id="bmsSortOrder" class="bms-filter-select" title="Sort order">
+              <option value="desc">Newest first</option>
+              <option value="asc">Oldest first</option>
+            </select>
+          </label>
+          <label class="bms-filter-label">
+            <span>Fix Version</span>
+            <div id="bmsFilterFixVersionWrap" class="bms-filter-multiselect-wrap"></div>
+          </label>
+          <button type="button" id="bmsClearFilters" class="btn-ghost bms-clear-filters">Clear filters</button>
+        </div>
+        <p id="bmsConfigHint" class="muted bms-config-hint"></p>
+      </div>
+      <div id="bmsList" class="bms-list bms-cards-grid"></div>
+      </div>
+    </div>
+
+    <div id="panelBot" class="tab-panel">
+      <div class="card">
+        <h2>WhatsApp Vault Bot</h2>
+        <p class="muted" style="margin-bottom:1rem">Sync your vault to the bot so you can query credentials and infos via WhatsApp. Data is encrypted with your secret before upload.</p>
+        <div class="form-row">
+          <label for="botPhone" class="form-label">WhatsApp number (with country code)</label>
+          <input type="text" id="botPhone" class="search-bar" placeholder="e.g. 919876543210" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label for="botSecret" class="form-label">Bot secret (you'll type this in WhatsApp to run commands)</label>
+          <input type="password" id="botSecret" class="search-bar" placeholder="Choose a secret" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <button type="button" id="botSyncBtn" class="btn-primary">Sync to Bot</button>
+          <span id="botSyncStatus" class="muted" style="margin-left:0.5rem"></span>
+        </div>
+        <p class="muted" style="margin-top:1rem;font-size:0.85rem">After syncing, message the bot on WhatsApp: <strong>&lt;secret&gt; help</strong> then <strong>&lt;secret&gt; list</strong>, <strong>&lt;secret&gt; get Gmail</strong>, <strong>&lt;secret&gt; search xyz</strong>.</p>
       </div>
     </div>
 
@@ -483,6 +955,7 @@
               <option value="command">Unix command</option>
               <option value="regex">Regex</option>
               <option value="url">URL</option>
+              <option value="query">Query</option>
               <option value="note">Note</option>
             </select>
             <input type="text" id="infoTitle" placeholder="Title (e.g. List large files)" style="flex:1" required>
@@ -512,7 +985,7 @@
       <div id="recordsDropZone" class="card records-drop-zone">
         <form id="addRecordForm">
           <div class="form-row form-row-description">
-            <input type="text" id="recordDescription" placeholder="Description (e.g. Tax form 2024)" required>
+            <input type="text" id="recordDescription" placeholder="description (e.g. Tax form 2024)" required>
           </div>
           <div class="form-row form-row-file">
             <div class="file-input-wrap">
@@ -527,11 +1000,6 @@
           <div id="recordUploadFeedback" class="record-upload-feedback" aria-live="polite" role="status"></div>
         </form>
       </div>
-      <div class="toolbar">
-        <button type="button" class="btn-ghost" id="recordsExportBtn">Export JSON</button>
-        <button type="button" class="btn-ghost" id="recordsImportBtn">Import JSON</button>
-        <input type="file" id="recordsImportFile" accept=".json" style="display:none">
-      </div>
       <div class="entries">
         <h2>Documents</h2>
         <div class="records-view-toolbar">
@@ -544,12 +1012,37 @@
       </div>
     </div>
   </div>
+  <div id="vaultChatbotWrap" class="vault-chatbot-wrap hidden" aria-hidden="true">
+    <button type="button" id="vaultChatbotBtn" class="vault-chatbot-btn" title="Search credentials, info & BMS" aria-label="Open search chatbot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><circle cx="9.5" cy="15" r="1.25" fill="currentColor"/><circle cx="14.5" cy="15" r="1.25" fill="currentColor"/><path d="M12 11V9M8 9h8M12 5v2"/></svg>
+    </button>
+    <div id="vaultChatbotPanel" class="vault-chatbot-panel hidden" aria-hidden="true">
+      <div class="vault-chatbot-header">
+        <span>Vault Bot</span>
+        <button type="button" id="vaultChatbotClose" aria-label="Close">✕</button>
+      </div>
+      <div id="vaultChatbotMessages" class="vault-chatbot-messages"></div>
+      <div class="vault-chatbot-input-wrap">
+        <input type="text" id="vaultChatbotInput" placeholder="Search credentials, info, documents, BMS..." autocomplete="off">
+      </div>
+    </div>
+  </div>
   <div id="recordPreviewModal" class="modal-overlay preview-modal hidden" aria-hidden="true">
     <div class="card">
       <div class="preview-title" id="recordPreviewTitle"></div>
       <div class="preview-content" id="recordPreviewContent"></div>
       <div class="modal-actions" style="margin-top: 0.75rem;">
         <button type="button" id="recordPreviewClose">Close</button>
+      </div>
+    </div>
+  </div>
+  <div id="addFavouriteModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="card">
+      <p class="muted" style="margin:0 0 0.75rem">Name for this favourite</p>
+      <input type="text" id="addFavouriteNameInput" placeholder="e.g. My open issues" maxlength="120" style="width:100%;margin-bottom:0.75rem;box-sizing:border-box">
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="addFavouriteCancel">Cancel</button>
+        <button type="button" class="btn-primary" id="addFavouriteSave">Save</button>
       </div>
     </div>
   </div>

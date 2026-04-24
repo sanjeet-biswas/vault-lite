@@ -11,6 +11,11 @@
   const STORAGE_KEY_PIN = 'vault-lite-pin-hash';
   const STORAGE_KEY_SESSION = 'vault-lite-session-key';
   const STORAGE_KEY_RECORDS_VIEW = 'vault-lite-records-view';
+  const STORAGE_KEY_CREDENTIALS_VIEW = 'vault-lite-credentials-view';
+  const STORAGE_KEY_BMS_VIEW = 'vault-lite-bms-view';
+  const STORAGE_KEY_BMS_JQL_FAVOURITES = 'vault-lite-bms-jql-favourites';
+  const STORAGE_KEY_CHATBOT_WELCOME_SHOWN = 'vault-lite-chatbot-welcome-shown';
+  const BMS_PROJECT_KEY = 'RKTNBSS';
   const RECORDS_MAX_FILE_SIZE = 25 * 1024 * 1024;
   var RECORDS_ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'md', 'json', 'xml', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'ico'];
   var RECORDS_ALLOWED_MIME_PREFIXES = ['application/pdf', 'application/msword', 'application/vnd.', 'text/', 'image/', 'application/json', 'application/xml'];
@@ -24,12 +29,14 @@
   var currentMode = 'work';
   var sessionEncryptionKey = null;
   var dataCache = {};
-
+  var bmsLastData = { issues: [], baseUrl: '' };
+  var bmsFilterSelected = { assignee: [], status: [], type: [], fixVersion: [], priority: [] };
+  var bmsFiltersCache = [];
   var iconEdit = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M11.3 1.3l3.4 3.4-9.2 9.2L2 15l.1-3.5 9.2-9.2zM10 2L2 10l.6 2.4L12 6 10 2z"/></svg>';
-  var iconCopy = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M5 1H3.5C2.67 1 2 1.67 2 2.5v9c0 .83.67 1.5 1.5 1.5H5v1.5c0 .83.67 1.5 1.5 1.5h7c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5H5V1zm0 1.5V5h7v9H5V2.5H3.5v9H5v-9z"/></svg>';
-  var iconTrash = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M4 3h8l1 11H3L4 3zm2 2v7h1V5H6zm3 0v7h1V5H9z"/></svg>';
+  var iconCopy = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M5.5 1A1.5 1.5 0 0 0 4 2.5v9A1.5 1.5 0 0 0 5.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 12.5 1h-7zM5 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-9zm2 1.5v1h5V4H7zm0 2v1h5V6H7zm0 2v1h3V8H7z"/><path d="M2.5 5A1.5 1.5 0 0 0 1 6.5V14a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 11 14V6.5A1.5 1.5 0 0 0 9.5 5H8v1h1.5a.5.5 0 0 1 .5.5V14a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5V6.5a.5.5 0 0 1 .5-.5H4V5H2.5z"/></svg>';
+  var iconTrash = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M5 2L11 2Q12 2 12 3L12 3.5 4 3.5 4 3Q4 2 5 2z M5 3.5L11 3.5 11.5 12.5Q12 13 11 13L5 13Q4 13 4.5 12.5L4.5 3.5z M6.5 5v6h1V5h-1z M9 5v6h1V5H9z"/></svg>';
   var iconUser = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 8c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 1.5c-2.5 0-7 1.2-7 3.5V14h14v-1c0-2.3-4.5-3.5-7-3.5z"/></svg>';
-  var iconKey = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.5 4a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 1a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM8 5L4 9v5h3v-2h2v-2h3V9L8 5zm-.5 5.5H6v1.5h1.5v-1.5zm0-2H6V10h1.5V8.5z"/></svg>';
+  var iconKey = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true" fill-rule="evenodd"><path d="M4 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm0 1.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM6.5 7H11.5v2H6.5V7zm5 0l1.5.25L11.5 7.5 13 7.75 11.5 8 13 8.5 11.5 9v-2z"/></svg>';
   var iconEye = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 4c3.5 0 6 3 7 4-1 1-3.5 4-7 4s-6-3-7-4c1-1 3.5-4 7-4zm0 1.5C5.3 5.5 3.2 7.6 2.5 8c.7.4 2.8 2.5 5.5 2.5s4.8-2.1 5.5-2.5c-.7-.4-2.8-2.5-5.5-2.5zM8 7a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>';
   var iconEyeOff = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M2 8c0 0 2-3 6-3s6 3 6 3-2 3-6 3-6-3-6-3zm6 2a2 2 0 100-4 2 2 0 000 4z"/><path d="M2 2l12 12" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>';
   var iconDownload = '<svg class="btn-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 10.5l4-4H10V2H6v4.5H4L8 10.5zM2 12v2h12v-2H2z"/></svg>';
@@ -116,6 +123,21 @@
   function setStoredMode(mode) { localStorage.setItem(STORAGE_KEY_MODE, mode); }
   function getRecordsView() { var v = localStorage.getItem(STORAGE_KEY_RECORDS_VIEW); return v === 'list' ? 'list' : 'card'; }
   function setRecordsView(view) { localStorage.setItem(STORAGE_KEY_RECORDS_VIEW, view); }
+  function getCredentialsView() { var v = localStorage.getItem(STORAGE_KEY_CREDENTIALS_VIEW); return v === 'grid' ? 'grid' : 'list'; }
+  function setCredentialsView(view) { localStorage.setItem(STORAGE_KEY_CREDENTIALS_VIEW, view); }
+  function getBMSView() { var v = localStorage.getItem(STORAGE_KEY_BMS_VIEW); return v === 'list' ? 'list' : 'grid'; }
+  function setBMSView(view) { localStorage.setItem(STORAGE_KEY_BMS_VIEW, view); }
+  function getBMSJqlFavourites() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_BMS_JQL_FAVOURITES);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function setBMSJqlFavourites(arr) {
+    try { localStorage.setItem(STORAGE_KEY_BMS_JQL_FAVOURITES, JSON.stringify(Array.isArray(arr) ? arr : [])); } catch (_) {}
+  }
   function getStoredPinHash() { return localStorage.getItem(STORAGE_KEY_PIN); }
   function setStoredPinHash(hash) { localStorage.setItem(STORAGE_KEY_PIN, hash); }
 
@@ -382,14 +404,14 @@
 
   function copyToClipboard(text, buttonEl) {
     navigator.clipboard.writeText(text).then(function () {
-      var span = document.createElement('span');
-      span.className = 'copy-feedback';
-      span.textContent = 'Copied';
-      buttonEl.parentElement.appendChild(span);
-      setTimeout(function () { span.remove(); }, 1500);
+      if (buttonEl && buttonEl.classList) {
+        buttonEl.classList.add('copy-success');
+        setTimeout(function () { buttonEl.classList.remove('copy-success'); }, 600);
+      }
     });
   }
   function maskUsername(s) { if (!s || s.length <= 8) return s; return s.slice(0, 8) + '•'.repeat(Math.min(s.length - 8, 12)); }
+  function maskPassword(s) { if (!s) return ''; return '•'.repeat(Math.min(s.length, 12)); }
   function escapeHtml(s) { var div = document.createElement('div'); div.textContent = s; return div.innerHTML; }
   function safeUrlLink(url) {
     var u = (url || '').trim();
@@ -400,8 +422,55 @@
     return '<a href="' + escaped + '" target="_blank" rel="noopener noreferrer" class="info-link">' + escaped + '</a>';
   }
 
+  var notificationHideTimer = null;
+  function hideNotification() {
+    var bar = document.getElementById('notificationBar');
+    if (!bar) return;
+    bar.classList.remove('visible');
+    bar.setAttribute('aria-hidden', 'true');
+    if (notificationHideTimer) { clearTimeout(notificationHideTimer); notificationHideTimer = null; }
+  }
+  function showNotification(message, type, duration) {
+    var bar = document.getElementById('notificationBar');
+    var msgEl = document.getElementById('notificationMessage');
+    if (!bar || !msgEl) return;
+    if (notificationHideTimer) { clearTimeout(notificationHideTimer); notificationHideTimer = null; }
+    bar.classList.remove('success', 'error', 'info');
+    bar.classList.add(type === 'success' || type === 'error' ? type : 'info');
+    msgEl.textContent = message;
+    bar.classList.add('visible');
+    bar.setAttribute('aria-hidden', 'false');
+    var d = duration === undefined ? 4000 : duration;
+    if (d > 0) notificationHideTimer = setTimeout(hideNotification, d);
+  }
+  if (typeof window !== 'undefined') window.showNotification = showNotification;
+
   var iconWork = '<svg class="mode-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm10 15H4V8h16v11z"/></svg>';
+  var iconModeArrow = '<svg class="mode-icon mode-icon-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 12l4-4v3h8v2H8v3l-4-4zm16 0l-4 4v-3H8v-2h8v-3l4 4z"/></svg>';
   var iconPersonal = '<svg class="mode-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>';
+
+  var jiraConnectivityProbeId = 0;
+  function probeJiraConnectivity(callback) {
+    var reqId = ++jiraConnectivityProbeId;
+    fetch('/api/jira/projects')
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, data: data };
+        }).catch(function () {
+          return { ok: false, data: null };
+        });
+      })
+      .then(function (result) {
+        if (reqId !== jiraConnectivityProbeId) return;
+        var d = result.data;
+        var usable = !!(result.ok && d && d.configured === true && !d.error);
+        callback(usable);
+      })
+      .catch(function () {
+        if (reqId !== jiraConnectivityProbeId) return;
+        callback(false);
+      });
+  }
 
   function showApp() {
     if (sessionEncryptionKey) saveSessionKey(sessionEncryptionKey).catch(function () {});
@@ -409,8 +478,10 @@
     currentMode = getStoredMode();
     var pinScreen = document.getElementById('pinScreen');
     var appContent = document.getElementById('appContent');
+    var chatbotWrap = document.getElementById('vaultChatbotWrap');
     if (pinScreen) pinScreen.classList.add('hidden');
     if (appContent) { appContent.classList.remove('hidden'); appContent.style.display = ''; }
+    if (chatbotWrap) { chatbotWrap.classList.remove('hidden'); chatbotWrap.setAttribute('aria-hidden', 'false'); }
     resetIdleTimer();
     startIdleTimer();
     updateModeToggle();
@@ -420,28 +491,51 @@
   function updateModeToggle() {
     var btn = document.getElementById('modeToggle');
     var iconEl = document.getElementById('modeIcon');
-    var labelEl = document.getElementById('modeLabel');
     var tabRecords = document.getElementById('tabRecords');
     var panelRecords = document.getElementById('panelRecords');
-    if (!btn || !iconEl || !labelEl) return;
+    var tabBMS = document.getElementById('tabBMS');
+    var panelBMS = document.getElementById('panelBMS');
+    if (!btn || !iconEl) return;
     btn.classList.add('active');
+    iconEl.innerHTML = '<span class="mode-icon-wrap mode-icon-work' + (currentMode === 'work' ? ' active' : '') + '">' + iconWork + '</span>' +
+      '<span class="mode-icon-wrap mode-icon-arrow">' + iconModeArrow + '</span>' +
+      '<span class="mode-icon-wrap mode-icon-personal' + (currentMode === 'personal' ? ' active' : '') + '">' + iconPersonal + '</span>';
     if (currentMode === 'work') {
-      iconEl.innerHTML = iconWork;
-      labelEl.textContent = 'Work';
       btn.title = 'Switch to Personal';
       if (tabRecords) tabRecords.style.display = 'none';
-      var tabCred = document.getElementById('tabCredentials');
-      var panelCred = document.getElementById('panelCredentials');
+      if (tabBMS) tabBMS.style.display = 'none';
       if (tabRecords && tabRecords.classList.contains('active')) {
-        if (tabCred) { tabCred.classList.add('active'); panelCred.classList.add('active'); }
         tabRecords.classList.remove('active');
         if (panelRecords) panelRecords.classList.remove('active');
       }
+      setActiveTab('tabCredentials', 'panelCredentials');
+      probeJiraConnectivity(function (available) {
+        if (currentMode !== 'work') return;
+        if (available) {
+          if (tabBMS) tabBMS.style.display = '';
+          setActiveTab('tabBMS', 'panelBMS');
+          loadBMSFilters();
+          renderBMSList();
+        } else {
+          if (tabBMS) tabBMS.style.display = 'none';
+          if (tabBMS && tabBMS.classList.contains('active')) {
+            tabBMS.classList.remove('active');
+            if (panelBMS) panelBMS.classList.remove('active');
+            setActiveTab('tabCredentials', 'panelCredentials');
+          }
+        }
+      });
     } else {
-      iconEl.innerHTML = iconPersonal;
-      labelEl.textContent = 'Personal';
       btn.title = 'Switch to Work';
       if (tabRecords) tabRecords.style.display = '';
+      if (tabBMS) tabBMS.style.display = 'none';
+      if (tabBMS && tabBMS.classList.contains('active')) {
+        var tabCred = document.getElementById('tabCredentials');
+        var panelCred = document.getElementById('panelCredentials');
+        if (tabCred) { tabCred.classList.add('active'); panelCred.classList.add('active'); }
+        tabBMS.classList.remove('active');
+        if (panelBMS) panelBMS.classList.remove('active');
+      }
       renderRecordsList();
     }
   }
@@ -453,8 +547,12 @@
     if (idleTimerId) { clearInterval(idleTimerId); idleTimerId = null; }
     var pinScreen = document.getElementById('pinScreen');
     var appContent = document.getElementById('appContent');
+    var chatbotWrap = document.getElementById('vaultChatbotWrap');
+    var chatbotPanel = document.getElementById('vaultChatbotPanel');
     if (pinScreen) pinScreen.classList.remove('hidden');
     if (appContent) { appContent.classList.add('hidden'); appContent.style.display = 'none'; }
+    if (chatbotWrap) { chatbotWrap.classList.add('hidden'); chatbotWrap.setAttribute('aria-hidden', 'true'); }
+    if (chatbotPanel) { chatbotPanel.classList.add('hidden'); chatbotPanel.setAttribute('aria-hidden', 'true'); }
     if (getStoredPinHash()) {
       var pinCreate = document.getElementById('pinCreate');
       var pinEnter = document.getElementById('pinEnter');
@@ -482,6 +580,20 @@
     idleTimerId = setInterval(function () { if (Date.now() - lastActivity >= IDLE_MS) lock(); }, 30000);
   }
 
+  function updateCredentialsViewToggle() {
+    var view = getCredentialsView();
+    var btn = document.getElementById('credentialsViewToggle');
+    if (!btn) return;
+    if (view === 'list') {
+      btn.innerHTML = iconGrid;
+      btn.title = 'Switch to grid view';
+      btn.setAttribute('aria-label', 'Switch to grid view');
+    } else {
+      btn.innerHTML = iconList;
+      btn.title = 'Switch to list view';
+      btn.setAttribute('aria-label', 'Switch to list view');
+    }
+  }
   function renderList() {
     var data = loadData();
     var listEl = document.getElementById('list');
@@ -489,25 +601,98 @@
     var query = (searchEl && searchEl.value || '').trim().toLowerCase();
     var entries = data.entries;
     if (query) entries = entries.filter(function (e) { return (e.label || '').toLowerCase().indexOf(query) !== -1 || (e.username || '').toLowerCase().indexOf(query) !== -1; });
-    if (!data.entries.length) { listEl.innerHTML = '<p class="empty">No entries yet. Add one above.</p>'; return; }
-    if (!entries.length) { listEl.innerHTML = '<p class="empty">No entries match your search.</p>'; return; }
-    listEl.innerHTML = entries.map(function (e) {
-      var isRevealed = revealedUsernames[e.id];
-      var displayUser = isRevealed ? e.username : maskUsername(e.username);
-      return '<div class="entry" data-id="' + e.id + '"><div class="entry-info"><div class="entry-title">' + escapeHtml(e.label) + '</div><div class="entry-meta">' + escapeHtml(displayUser) + '</div></div><div class="entry-actions"><button type="button" class="btn-ghost toggle-username" title="' + (isRevealed ? 'Hide username' : 'Show full username') + '">' + (isRevealed ? iconEyeOff : iconEye) + '</button><button type="button" class="btn-ghost copy-user" title="Copy username">' + iconUser + '</button><button type="button" class="btn-ghost copy-pass" title="Copy password">' + iconKey + '</button><button type="button" class="btn-danger delete" title="Delete">' + iconTrash + '</button></div></div>';
-    }).join('');
-    listEl.querySelectorAll('.entry').forEach(function (entryEl) {
-      var id = entryEl.dataset.id;
-      var entry = entries.find(function (e) { return e.id === id; });
-      if (!entry) return;
-      entryEl.querySelector('.copy-user').addEventListener('click', function () { copyToClipboard(entry.username, this); });
-      entryEl.querySelector('.toggle-username').addEventListener('click', function () { revealedUsernames[id] = !revealedUsernames[id]; renderList(); });
-      entryEl.querySelector('.copy-pass').addEventListener('click', function () { copyToClipboard(entry.password, this); });
-      entryEl.querySelector('.delete').addEventListener('click', function () { if (confirm('Delete this entry?')) { removeEntry(id); renderList(); } });
-    });
+    if (!data.entries.length) { listEl.className = ''; listEl.innerHTML = '<p class="empty">No entries yet. Add one above.</p>'; updateCredentialsViewToggle(); return; }
+    if (!entries.length) { listEl.className = ''; listEl.innerHTML = '<p class="empty">No entries match your search.</p>'; updateCredentialsViewToggle(); return; }
+    var view = getCredentialsView();
+    if (view === 'grid') {
+      listEl.className = 'credentials-cards-grid';
+      listEl.innerHTML = entries.map(function (e) {
+        var isRevealed = revealedUsernames[e.id];
+        var displayUser = isRevealed ? e.username : maskUsername(e.username);
+        var displayPass = maskPassword(e.password);
+        return '<div class="cred-card" data-id="' + e.id + '">' +
+          '<div class="cred-card-header">' +
+            '<div class="cred-card-label">' + escapeHtml(e.label) + '</div>' +
+            '<button type="button" class="btn-ghost cred-card-delete delete" title="Delete">' + iconTrash + '</button>' +
+          '</div>' +
+          '<div class="cred-card-row">' +
+            '<span class="cred-icon" aria-hidden="true">' + iconUser + '</span>' +
+            '<span class="cred-value">' + escapeHtml(displayUser) + '</span>' +
+            '<button type="button" class="btn-ghost toggle-username" title="' + (isRevealed ? 'Hide username' : 'Show full username') + '">' + (isRevealed ? iconEyeOff : iconEye) + '</button>' +
+            '<button type="button" class="btn-ghost copy-user" title="Copy username">' + iconCopy + '</button>' +
+          '</div>' +
+          '<div class="cred-card-row">' +
+            '<span class="cred-icon" aria-hidden="true">' + iconKey + '</span>' +
+            '<span class="cred-value">' + escapeHtml(displayPass) + '</span>' +
+            '<button type="button" class="btn-ghost copy-pass" title="Copy password">' + iconCopy + '</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      listEl.querySelectorAll('.cred-card').forEach(function (cardEl) {
+        var id = cardEl.dataset.id;
+        var entry = entries.find(function (e) { return e.id === id; });
+        if (!entry) return;
+        cardEl.querySelector('.copy-user').addEventListener('click', function () { copyToClipboard(entry.username, this); });
+        cardEl.querySelector('.toggle-username').addEventListener('click', function () { revealedUsernames[id] = !revealedUsernames[id]; renderList(); });
+        cardEl.querySelector('.copy-pass').addEventListener('click', function () { copyToClipboard(entry.password, this); });
+        cardEl.querySelector('.delete').addEventListener('click', function () { if (confirm('Delete this entry?')) { removeEntry(id); renderList(); } });
+      });
+    } else {
+      listEl.className = '';
+      listEl.innerHTML = entries.map(function (e) {
+        var isRevealed = revealedUsernames[e.id];
+        var displayUser = isRevealed ? e.username : maskUsername(e.username);
+        var displayPass = maskPassword(e.password);
+        return '<div class="entry entry-cred" data-id="' + e.id + '">' +
+          '<div class="entry-desc">' + escapeHtml(e.label) + '</div>' +
+          '<span class="entry-icon entry-icon-user" aria-hidden="true">' + iconUser + '</span>' +
+          '<span class="entry-user-text">' + escapeHtml(displayUser) + '</span>' +
+          '<button type="button" class="btn-ghost copy-user" title="Copy username">' + iconCopy + '</button>' +
+          '<span class="entry-icon entry-icon-pass" aria-hidden="true">' + iconKey + '</span>' +
+          '<span class="entry-pass-text">' + escapeHtml(displayPass) + '</span>' +
+          '<button type="button" class="btn-ghost copy-pass" title="Copy password">' + iconCopy + '</button>' +
+          '<div class="entry-actions">' +
+            '<button type="button" class="btn-ghost toggle-username" title="' + (isRevealed ? 'Hide username' : 'Show full username') + '">' + (isRevealed ? iconEyeOff : iconEye) + '</button>' +
+            '<button type="button" class="btn-danger delete" title="Delete">' + iconTrash + '</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      listEl.querySelectorAll('.entry').forEach(function (entryEl) {
+        var id = entryEl.dataset.id;
+        var entry = entries.find(function (e) { return e.id === id; });
+        if (!entry) return;
+        entryEl.querySelector('.copy-user').addEventListener('click', function () { copyToClipboard(entry.username, this); });
+        entryEl.querySelector('.toggle-username').addEventListener('click', function () { revealedUsernames[id] = !revealedUsernames[id]; renderList(); });
+        entryEl.querySelector('.copy-pass').addEventListener('click', function () { copyToClipboard(entry.password, this); });
+        entryEl.querySelector('.delete').addEventListener('click', function () { if (confirm('Delete this entry?')) { removeEntry(id); renderList(); } });
+      });
+    }
+    updateCredentialsViewToggle();
   }
 
-  var TYPE_LABELS = { command: 'Command', regex: 'Regex', url: 'URL', note: 'Note' };
+  var TYPE_LABELS = { command: 'Command', regex: 'Regex', url: 'URL', query: 'Query', note: 'Note' };
+
+  function detectInfoTypeFromContent(text) {
+    if (!text) return '';
+    var t = text.trim();
+    if (!t) return '';
+    var lower = t.toLowerCase();
+    // URL: starts with scheme://
+    if (/^[a-z][a-z0-9+.-]*:\/\/\S+/i.test(t)) return 'url';
+    // Regex: /pattern/flags
+    if (t[0] === '/' && t.lastIndexOf('/') > 0 && t.lastIndexOf('/') === t.length - 1) return 'regex';
+    // SQL query: look for common patterns
+    if (/\bselect\s+.+\s+from\b/i.test(t) ||
+        /\b(update|insert|delete)\b\s+.+\b(from|into)\b/i.test(t) ||
+        /\b(create|alter|drop)\s+table\b/i.test(t)) {
+      return 'query';
+    }
+    // Shell / command: pipes, &&, ||, or common commands
+    if (/(\|\||&&|;|\||\bgrep\b|\bls\b|\bcat\b|\bcd\b|\bchmod\b|\bchown\b|\bssh\b|\bscp\b)/i.test(t)) {
+      return 'command';
+    }
+    return 'note';
+  }
   function renderInfoList() {
     var data = loadData();
     var listEl = document.getElementById('infoList');
@@ -537,7 +722,13 @@
   }
   function showInfoEditForm(entryEl, item) {
     var id = item.id;
-    var typeOpts = [{ v: 'command', l: 'Unix command' }, { v: 'regex', l: 'Regex' }, { v: 'url', l: 'URL' }, { v: 'note', l: 'Note' }];
+    var typeOpts = [
+      { v: 'command', l: 'Unix command' },
+      { v: 'regex', l: 'Regex' },
+      { v: 'url', l: 'URL' },
+      { v: 'query', l: 'Query' },
+      { v: 'note', l: 'Note' }
+    ];
     var selectHtml = typeOpts.map(function (o) { var sel = o.v === (item.type || 'note') ? ' selected' : ''; return '<option value="' + escapeHtml(o.v) + '"' + sel + '>' + escapeHtml(o.l) + '</option>'; }).join('');
     var formHtml = '<div class="info-edit-form card"><div class="form-row"><select class="info-type edit-type">' + selectHtml + '</select><input type="text" class="edit-title" placeholder="Title" value="' + escapeHtml(item.title || '') + '" style="flex:1"></div><div class="form-row"><textarea class="edit-content" placeholder="Content" rows="4">' + escapeHtml(item.content || '') + '</textarea></div><div class="form-row"><button type="button" class="btn-primary save-edit">Save</button><button type="button" class="btn-ghost cancel-edit">Cancel</button></div></div>';
     entryEl.innerHTML = formHtml;
@@ -637,6 +828,765 @@
       });
     }
     updateRecordsViewToggle();
+  }
+
+  function bmsIssueAssignee(issue) {
+    var a = issue.fields && issue.fields.assignee;
+    return (a && (a.displayName || a.name)) || '';
+  }
+  function bmsIssueStatus(issue) {
+    var s = issue.fields && issue.fields.status;
+    return (s && s.name) || '';
+  }
+  function bmsIssueType(issue) {
+    var t = issue.fields && issue.fields.issuetype;
+    return (t && t.name) || '';
+  }
+  function bmsIssueTypeIconUrl(issue, baseUrl) {
+    var t = issue.fields && issue.fields.issuetype;
+    if (!t || !t.iconUrl) return '';
+    var url = (t.iconUrl || '').trim();
+    if (!url) return '';
+    if (url.indexOf('http') === 0) return url;
+    baseUrl = (baseUrl || '').replace(/\/$/, '');
+    return baseUrl ? baseUrl + (url.indexOf('/') === 0 ? url : '/' + url) : url;
+  }
+  function bmsIssuePriority(issue) {
+    var p = issue.fields && issue.fields.priority;
+    return (p && p.name) || '';
+  }
+  function bmsIssueEffort(issue) {
+    var f = issue.fields || {};
+    var sec = f.timeoriginalestimate;
+    if (sec != null && sec > 0) return Math.round(sec / 3600) + 'h';
+    var tt = f.timetracking;
+    if (tt && tt.originalEstimate) return tt.originalEstimate;
+    return '';
+  }
+  function bmsIssueUpdated(issue) {
+    var u = issue.fields && issue.fields.updated;
+    return u ? new Date(u).toLocaleDateString(undefined, { dateStyle: 'short' }) : '';
+  }
+  function bmsIssueCreated(issue) {
+    var c = issue.fields && issue.fields.created;
+    return c || '';
+  }
+  function bmsIssueDueDate(issue) {
+    var d = issue.fields && issue.fields.duedate;
+    return d || '';
+  }
+  function bmsIssueDueDateFormatted(issue) {
+    var d = bmsIssueDueDate(issue);
+    return d ? new Date(d).toLocaleDateString(undefined, { dateStyle: 'short' }) : '';
+  }
+  function bmsIssueCreatedFormatted(issue) {
+    var c = bmsIssueCreated(issue);
+    return c ? new Date(c).toLocaleDateString(undefined, { dateStyle: 'short' }) : '';
+  }
+  function bmsIssueCreatedToday(issue) {
+    var c = bmsIssueCreated(issue);
+    if (!c) return false;
+    var d = new Date(c);
+    if (isNaN(d.getTime())) return false;
+    var today = new Date();
+    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+  }
+  function bmsIssueFixVersions(issue) {
+    var v = issue.fields && issue.fields.fixVersions;
+    if (!Array.isArray(v) || !v.length) return '';
+    return v.map(function (x) { return x.name || ''; }).filter(Boolean).join(', ');
+  }
+  function bmsIssueFixVersionNames(issue) {
+    var v = issue.fields && issue.fields.fixVersions;
+    if (!Array.isArray(v) || !v.length) return [];
+    return v.map(function (x) { return x && x.name ? x.name : ''; }).filter(Boolean);
+  }
+  function bmsIssueAffectVersions(issue) {
+    var v = issue.fields && issue.fields.versions;
+    if (!Array.isArray(v) || !v.length) return '';
+    return v.map(function (x) { return x.name || ''; }).filter(Boolean).join(', ');
+  }
+  function bmsIssueSortKey(issue, sortBy) {
+    if (sortBy === 'created') return bmsIssueCreated(issue);
+    if (sortBy === 'duedate') return bmsIssueDueDate(issue);
+    return (issue.fields && issue.fields.updated) || '';
+  }
+  function bmsPriorityDotClass(priority) {
+    if (!priority) return '';
+    var p = (priority + '').toLowerCase();
+    if (p === 'blocker' || p === 'highest') return 'bms-priority-dot bms-priority-dot-blocker';
+    if (p === 'critical' || p === 'high') return 'bms-priority-dot bms-priority-dot-critical';
+    if (p === 'major' || p === 'medium') return 'bms-priority-dot bms-priority-dot-major';
+    if (p === 'minor' || p === 'low' || p === 'lowest') return 'bms-priority-dot bms-priority-dot-minor';
+    return 'bms-priority-dot bms-priority-dot-medium';
+  }
+
+  var JQL_SUGGESTIONS = [
+    { insert: 'assignee = currentUser() ', label: 'assignee = currentUser()', cat: 'Snippet' },
+    { insert: 'status NOT IN (Closed, Resolved) ', label: 'status NOT IN (Closed, Resolved)', cat: 'Snippet' },
+    { insert: 'assignee = currentUser() AND status NOT IN (Closed, Resolved) ORDER BY updated DESC', label: 'My open tickets (default)', cat: 'Snippet' },
+    { insert: 'ORDER BY updated DESC ', label: 'ORDER BY updated DESC', cat: 'Snippet' },
+    { insert: 'ORDER BY created DESC ', label: 'ORDER BY created DESC', cat: 'Snippet' },
+    { insert: 'ORDER BY priority DESC ', label: 'ORDER BY priority DESC', cat: 'Snippet' },
+    { insert: 'assignee ', label: 'assignee', cat: 'Field' },
+    { insert: 'status ', label: 'status', cat: 'Field' },
+    { insert: 'project ', label: 'project', cat: 'Field' },
+    { insert: 'issuetype ', label: 'issuetype', cat: 'Field' },
+    { insert: 'priority ', label: 'priority', cat: 'Field' },
+    { insert: 'resolution ', label: 'resolution', cat: 'Field' },
+    { insert: 'created ', label: 'created', cat: 'Field' },
+    { insert: 'updated ', label: 'updated', cat: 'Field' },
+    { insert: 'summary ', label: 'summary', cat: 'Field' },
+    { insert: 'reporter ', label: 'reporter', cat: 'Field' },
+    { insert: 'labels ', label: 'labels', cat: 'Field' },
+    { insert: '= ', label: '=', cat: 'Operator' },
+    { insert: '!= ', label: '!=', cat: 'Operator' },
+    { insert: 'IN ', label: 'IN', cat: 'Operator' },
+    { insert: 'NOT IN ', label: 'NOT IN', cat: 'Operator' },
+    { insert: '~ ', label: '~', cat: 'Operator' },
+    { insert: 'AND ', label: 'AND', cat: 'Keyword' },
+    { insert: 'OR ', label: 'OR', cat: 'Keyword' },
+    { insert: 'ORDER BY ', label: 'ORDER BY', cat: 'Keyword' },
+    { insert: 'ASC ', label: 'ASC', cat: 'Keyword' },
+    { insert: 'DESC ', label: 'DESC', cat: 'Keyword' },
+    { insert: 'currentUser() ', label: 'currentUser()', cat: 'Value' },
+    { insert: '"In Progress" ', label: '"In Progress"', cat: 'Value' },
+    { insert: '"To Do" ', label: '"To Do"', cat: 'Value' },
+    { insert: 'Open ', label: 'Open', cat: 'Value' },
+    { insert: 'Done ', label: 'Done', cat: 'Value' },
+    { insert: 'Closed ', label: 'Closed', cat: 'Value' },
+    { insert: 'Resolved ', label: 'Resolved', cat: 'Value' },
+    { insert: 'Bug ', label: 'Bug', cat: 'Value' },
+    { insert: 'Task ', label: 'Task', cat: 'Value' },
+    { insert: 'Story ', label: 'Story', cat: 'Value' }
+  ];
+  var bmsJqlHighlightIndex = -1;
+  var bmsJqlSuggestionsEl = null;
+
+  function getJqlCursorWord(input) {
+    if (!input) return { word: '', startIndex: 0 };
+    var val = input.value || '';
+    var cursor = input.selectionStart || 0;
+    var start = val.lastIndexOf(' ', cursor - 1) + 1;
+    return { word: val.slice(start, cursor), startIndex: start };
+  }
+
+  function showJqlSuggestions(input) {
+    var wrap = document.getElementById('bmsJqlWrap');
+    var listEl = document.getElementById('bmsJqlSuggestions');
+    if (!wrap || !listEl || !input) return;
+    var word = getJqlCursorWord(input).word;
+    var q = word.toLowerCase();
+    var matches = JQL_SUGGESTIONS.filter(function (s) {
+      var lab = s.label.toLowerCase();
+      var ins = s.insert.toLowerCase().trim();
+      return !q || lab.indexOf(q) === 0 || ins.indexOf(q) === 0 || lab.indexOf(q) !== -1;
+    }).slice(0, 14);
+    bmsJqlHighlightIndex = matches.length ? 0 : -1;
+    listEl.innerHTML = '';
+    listEl.classList.remove('hidden');
+    wrap.querySelector('input').setAttribute('aria-expanded', 'true');
+    matches.forEach(function (s, i) {
+      var div = document.createElement('div');
+      div.className = 'bms-jql-suggestion' + (i === 0 ? ' highlighted' : '');
+      div.setAttribute('role', 'option');
+      div.innerHTML = '<div class="bms-jql-suggestion-cat">' + escapeHtml(s.cat) + '</div>' + escapeHtml(s.label);
+      div.dataset.insert = s.insert;
+      div.addEventListener('click', function () {
+        applyJqlSuggestion(input, s.insert);
+        listEl.classList.add('hidden');
+        input.setAttribute('aria-expanded', 'false');
+        input.focus();
+      });
+      listEl.appendChild(div);
+    });
+    if (!matches.length) listEl.classList.add('hidden');
+  }
+
+  function hideJqlSuggestions() {
+    var listEl = document.getElementById('bmsJqlSuggestions');
+    var input = document.getElementById('bmsJql');
+    if (listEl) listEl.classList.add('hidden');
+    if (input) input.setAttribute('aria-expanded', 'false');
+    bmsJqlHighlightIndex = -1;
+  }
+
+  function applyJqlSuggestion(input, insert) {
+    if (!input) return;
+    var val = input.value || '';
+    var cursor = input.selectionStart || 0;
+    var start = val.lastIndexOf(' ', cursor - 1) + 1;
+    var before = val.slice(0, start);
+    var after = val.slice(cursor);
+    var newVal = before + insert + after;
+    input.value = newVal;
+    input.selectionStart = input.selectionEnd = before.length + insert.length;
+    input.focus();
+  }
+
+  function initJqlAutocomplete() {
+    var input = document.getElementById('bmsJql');
+    var listEl = document.getElementById('bmsJqlSuggestions');
+    if (!input || !listEl) return;
+    bmsJqlSuggestionsEl = listEl;
+    input.addEventListener('input', function () { showJqlSuggestions(input); });
+    input.addEventListener('focus', function () { showJqlSuggestions(input); });
+    input.addEventListener('blur', function () {
+      setTimeout(function () {
+        var listEl = document.getElementById('bmsJqlSuggestions');
+        if (listEl && !listEl.contains(document.activeElement)) hideJqlSuggestions();
+      }, 180);
+    });
+    input.addEventListener('keydown', function (e) {
+      var listEl = document.getElementById('bmsJqlSuggestions');
+      var isHidden = !listEl || listEl.classList.contains('hidden');
+      var opts = listEl ? listEl.querySelectorAll('.bms-jql-suggestion') : [];
+      if (e.key === 'ArrowDown' && !isHidden && opts.length) {
+        e.preventDefault();
+        bmsJqlHighlightIndex = (bmsJqlHighlightIndex + 1) % opts.length;
+        opts.forEach(function (el, i) { el.classList.toggle('highlighted', i === bmsJqlHighlightIndex); });
+        opts[bmsJqlHighlightIndex].scrollIntoView({ block: 'nearest' });
+        return;
+      }
+      if (e.key === 'ArrowUp' && !isHidden && opts.length) {
+        e.preventDefault();
+        bmsJqlHighlightIndex = bmsJqlHighlightIndex <= 0 ? opts.length - 1 : bmsJqlHighlightIndex - 1;
+        opts.forEach(function (el, i) { el.classList.toggle('highlighted', i === bmsJqlHighlightIndex); });
+        opts[bmsJqlHighlightIndex].scrollIntoView({ block: 'nearest' });
+        return;
+      }
+      if (e.key === 'Enter' && !isHidden && opts.length) {
+        e.preventDefault();
+        var sel = opts[bmsJqlHighlightIndex];
+        if (sel && sel.dataset.insert) {
+          applyJqlSuggestion(input, sel.dataset.insert);
+          hideJqlSuggestions();
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        hideJqlSuggestions();
+        e.preventDefault();
+        return;
+      }
+      if (e.key === 'Enter' && isHidden) {
+        renderBMSList();
+        e.preventDefault();
+      }
+    });
+  }
+
+  function buildBMSMultiselect(wrapId, filterKey, options, triggerLabel, optionKeys) {
+    var wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    var selected = bmsFilterSelected[filterKey] || [];
+    var opts = Array.isArray(optionKeys) ? optionKeys.slice() : Object.keys(options).sort();
+    var triggerId = 'bms-multi-trigger-' + filterKey;
+    var dropdownId = 'bms-multi-dropdown-' + filterKey;
+    wrap.innerHTML = '<button type="button" id="' + triggerId + '" class="bms-filter-multiselect-trigger" aria-haspopup="listbox" aria-expanded="false">' +
+      '<span class="bms-filter-trigger-text">' + (selected.length ? selected.length + ' selected' : 'All') + '</span>' +
+      '<span class="bms-filter-trigger-count">' + (selected.length ? selected.length : '') + '</span>' +
+      '<span class="bms-filter-trigger-arrow" aria-hidden="true">▼</span></button>' +
+      '<div id="' + dropdownId + '" class="bms-filter-multiselect-dropdown hidden" role="listbox">' +
+      opts.map(function (k) {
+        var checked = selected.indexOf(k) !== -1;
+        return '<label class="bms-filter-multiselect-option"><input type="checkbox" value="' + escapeHtml(k) + '"' + (checked ? ' checked' : '') + '><span>' + escapeHtml(k) + '</span></label>';
+      }).join('') + '</div>';
+    var trigger = document.getElementById(triggerId);
+    var dropdown = document.getElementById(dropdownId);
+    function updateTriggerText() {
+      var sel = bmsFilterSelected[filterKey] || [];
+      var textEl = trigger && trigger.querySelector('.bms-filter-trigger-text');
+      var countEl = trigger && trigger.querySelector('.bms-filter-trigger-count');
+      if (textEl) textEl.textContent = sel.length ? sel.length + ' selected' : 'All';
+      if (countEl) countEl.textContent = sel.length ? sel.length : '';
+    }
+    function syncSelectedFromCheckboxes() {
+      var checkboxes = dropdown ? dropdown.querySelectorAll('input[type="checkbox"]:checked') : [];
+      bmsFilterSelected[filterKey] = Array.prototype.map.call(checkboxes, function (cb) { return cb.value; });
+      updateTriggerText();
+      applyBMSFilters();
+    }
+    if (trigger) {
+      trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = dropdown && !dropdown.classList.contains('hidden');
+        document.querySelectorAll('.bms-filter-multiselect-dropdown').forEach(function (d) { d.classList.add('hidden'); });
+        document.querySelectorAll('.bms-filter-multiselect-trigger').forEach(function (t) { t.classList.remove('open'); });
+        if (!isOpen && dropdown) {
+          dropdown.classList.remove('hidden');
+          trigger.classList.add('open');
+          trigger.setAttribute('aria-expanded', 'true');
+        } else if (trigger) {
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    if (dropdown) {
+      dropdown.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+        cb.addEventListener('change', syncSelectedFromCheckboxes);
+      });
+    }
+  }
+
+  function closeAllBMSMultiselects() {
+    document.querySelectorAll('.bms-filter-multiselect-dropdown').forEach(function (d) { d.classList.add('hidden'); });
+    document.querySelectorAll('.bms-filter-multiselect-trigger').forEach(function (t) { t.classList.remove('open'); t.setAttribute('aria-expanded', 'false'); });
+  }
+
+  function populateBMSFilters(issues) {
+    var assignees = {}, statuses = {}, types = {}, fixVersions = {};
+    issues.forEach(function (issue) {
+      var a = bmsIssueAssignee(issue); if (a) assignees[a] = true;
+      var s = bmsIssueStatus(issue); if (s) statuses[s] = true;
+      var t = bmsIssueType(issue); if (t) types[t] = true;
+      bmsIssueFixVersionNames(issue).forEach(function (fv) { fixVersions[fv] = true; });
+    });
+    var fixVersionKeys = Object.keys(fixVersions).sort(function (a, b) {
+      return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+    }).slice(0, 6);
+    var fixVersionOptions = {};
+    fixVersionKeys.forEach(function (k) { fixVersionOptions[k] = true; });
+    buildBMSMultiselect('bmsFilterAssigneeWrap', 'assignee', assignees, 'Assignee');
+    buildBMSMultiselect('bmsFilterStatusWrap', 'status', statuses, 'Status');
+    buildBMSMultiselect('bmsFilterTypeWrap', 'type', types, 'Type');
+    buildBMSMultiselect('bmsFilterFixVersionWrap', 'fixVersion', fixVersionOptions, 'Fix Version', fixVersionKeys);
+  }
+
+  function applyBMSFilters() {
+    if (!bmsLastData.issues.length) return;
+    var assignees = bmsFilterSelected.assignee || [];
+    var statuses = bmsFilterSelected.status || [];
+    var types = bmsFilterSelected.type || [];
+    var fixVersions = bmsFilterSelected.fixVersion || [];
+    var searchEl = document.getElementById('bmsSearch');
+    var searchQ = (searchEl && searchEl.value || '').trim().toLowerCase();
+    var filtered = bmsLastData.issues.filter(function (issue) {
+      if (assignees.length && assignees.indexOf(bmsIssueAssignee(issue)) === -1) return false;
+      if (statuses.length && statuses.indexOf(bmsIssueStatus(issue)) === -1) return false;
+      if (types.length && types.indexOf(bmsIssueType(issue)) === -1) return false;
+      if (fixVersions.length) {
+        var issueFixVersions = bmsIssueFixVersionNames(issue);
+        var matchFixVersion = fixVersions.some(function (fv) { return issueFixVersions.indexOf(fv) !== -1; });
+        if (!matchFixVersion) return false;
+      }
+      if (searchQ) {
+        var key = (issue.key || '').toLowerCase();
+        var summary = ((issue.fields && issue.fields.summary) || '').toLowerCase();
+        var isNumeric = /^\d+$/.test(searchQ.replace(/\s/g, ''));
+        if (isNumeric) {
+          if (key.indexOf(searchQ) === -1) return false;
+        } else {
+          var terms = searchQ.split(/\s+/).filter(Boolean);
+          for (var t = 0; t < terms.length; t++) {
+            if (summary.indexOf(terms[t]) === -1) return false;
+          }
+        }
+      }
+      return true;
+    });
+    var sortBy = (document.getElementById('bmsSortBy') && document.getElementById('bmsSortBy').value) || 'updated';
+    var sortOrder = (document.getElementById('bmsSortOrder') && document.getElementById('bmsSortOrder').value) || 'desc';
+    var desc = sortOrder === 'desc';
+    filtered.sort(function (a, b) {
+      var ka = bmsIssueSortKey(a, sortBy);
+      var kb = bmsIssueSortKey(b, sortBy);
+      var emptyLast = desc;
+      if (!ka && !kb) return 0;
+      if (!ka) return emptyLast ? 1 : -1;
+      if (!kb) return emptyLast ? -1 : 1;
+      var cmp = ka < kb ? -1 : ka > kb ? 1 : 0;
+      return desc ? -cmp : cmp;
+    });
+    renderBMSCards(filtered);
+  }
+
+  function updateBMSViewToggle() {
+    var view = getBMSView();
+    var btn = document.getElementById('bmsViewToggle');
+    if (!btn) return;
+    if (view === 'list') {
+      btn.innerHTML = iconGrid;
+      btn.title = 'Switch to grid view';
+      btn.setAttribute('aria-label', 'Switch to grid view');
+    } else {
+      btn.innerHTML = iconList;
+      btn.title = 'Switch to list view';
+      btn.setAttribute('aria-label', 'Switch to list view');
+    }
+  }
+
+  function renderBMSCards(issues) {
+    var listEl = document.getElementById('bmsList');
+    var countEl = document.getElementById('bmsCount');
+    var baseUrl = (bmsLastData.baseUrl || '').replace(/\/$/, '');
+    if (!listEl) return;
+    var isListView = getBMSView() === 'list';
+    listEl.className = 'bms-list ' + (isListView ? 'bms-list-view' : 'bms-cards-grid');
+    if (countEl) countEl.textContent = issues.length + ' ticket' + (issues.length !== 1 ? 's' : '');
+    if (!issues.length) {
+      listEl.innerHTML = '<p class="empty">No tickets match the current filters.</p>';
+      updateBMSViewToggle();
+      return;
+    }
+    var listHeader = isListView ? '<div class="bms-list-header"><span class="bms-list-header-key">Key</span><span class="bms-list-header-summary">Summary</span><span class="bms-list-header-meta">Details</span></div>' : '';
+    listEl.innerHTML = listHeader + issues.map(function (issue) {
+      var key = issue.key || '';
+      var summary = (issue.fields && issue.fields.summary) || '(No summary)';
+      var status = bmsIssueStatus(issue);
+      var type = bmsIssueType(issue);
+      var assignee = bmsIssueAssignee(issue);
+      var effort = bmsIssueEffort(issue);
+      var priority = bmsIssuePriority(issue);
+      var createdStr = bmsIssueCreatedFormatted(issue);
+      var updatedStr = bmsIssueUpdated(issue);
+      var dueStr = bmsIssueDueDateFormatted(issue);
+      var fvStr = bmsIssueFixVersions(issue);
+      var avStr = bmsIssueAffectVersions(issue);
+      var href = baseUrl ? baseUrl + '/browse/' + key : '#';
+      var statusLabelClass = 'bms-ticket-status-label' + (status ? ' ' + status.replace(/\s+/g, '_') : '');
+      var dotClass = bmsPriorityDotClass(priority);
+      var dotHtml = dotClass ? '<span class="' + dotClass + '" title="' + escapeHtml(priority || '') + '" aria-hidden="true"></span>' : '';
+      var typeIconUrl = bmsIssueTypeIconUrl(issue, baseUrl);
+      var typeHtml = type ? (typeIconUrl ? '<img class="bms-ticket-type-icon" src="' + escapeHtml(typeIconUrl) + '" alt="' + escapeHtml(type) + '" title="' + escapeHtml(type) + '" loading="lazy">' : '<span class="bms-ticket-type">' + escapeHtml(type) + '</span>') : '';
+      var headerLabels = typeHtml + (status ? '<span class="' + statusLabelClass + '">' + escapeHtml(status) + '</span>' : '');
+      var metaParts = [];
+      if (assignee) metaParts.push('<span class="bms-ticket-meta-item">Assignee: ' + escapeHtml(assignee) + '</span>');
+      if (createdStr) metaParts.push('<span class="bms-ticket-meta-item">Created: ' + escapeHtml(createdStr) + '</span>');
+      if (updatedStr) metaParts.push('<span class="bms-ticket-meta-item">Updated: ' + escapeHtml(updatedStr) + '</span>');
+      if (dueStr) metaParts.push('<span class="bms-ticket-meta-item">Due: ' + escapeHtml(dueStr) + '</span>');
+      if (fvStr) metaParts.push('<span class="bms-ticket-meta-item">fv: ' + escapeHtml(fvStr) + '</span>');
+      if (avStr) metaParts.push('<span class="bms-ticket-meta-item">av: ' + escapeHtml(avStr) + '</span>');
+      if (effort) metaParts.push('<span class="bms-ticket-meta-item bms-ticket-effort">' + escapeHtml(effort) + '</span>');
+      var newTag = bmsIssueCreatedToday(issue) ? '<span class="bms-ticket-new">new</span>' : '';
+      return '<a class="bms-ticket" href="' + (baseUrl ? escapeHtml(href) : '#') + '" target="_blank" rel="noopener" data-key="' + escapeHtml(key) + '">' +
+        newTag +
+        '<div class="bms-ticket-header">' +
+          '<span class="bms-ticket-key-wrap">' + dotHtml + '<span class="bms-ticket-key">' + escapeHtml(key) + '</span></span>' +
+          (headerLabels ? '<span class="bms-ticket-header-labels">' + headerLabels + '</span>' : '') +
+        '</div>' +
+        '<div class="bms-ticket-summary">' + escapeHtml(summary) + '</div>' +
+        '<div class="bms-ticket-meta">' + metaParts.join('') + '</div>' +
+      '</a>';
+    }).join('');
+    updateBMSViewToggle();
+  }
+
+  function buildEffectiveJql() {
+    var jqlEl = document.getElementById('bmsJql');
+    var userJql = (jqlEl && jqlEl.value || '').trim();
+    var projectClause = 'project = "' + BMS_PROJECT_KEY.replace(/"/g, '') + '"';
+    if (!userJql) return projectClause;
+    var orderBy = '';
+    var condition = userJql;
+    var orderIdx = userJql.toUpperCase().indexOf(' ORDER BY ');
+    if (orderIdx !== -1) {
+      condition = userJql.slice(0, orderIdx).trim();
+      orderBy = userJql.slice(orderIdx).trim();
+    }
+    var jql = projectClause + ' AND (' + condition + ')';
+    if (orderBy) jql += ' ' + orderBy;
+    return jql;
+  }
+
+  function renderBMSJqlFavourites() {
+    var listEl = document.getElementById('bmsJqlFavouritesList');
+    if (!listEl) return;
+    var favs = getBMSJqlFavourites();
+    var html = favs.map(function (f, i) {
+      var name = (f.name || 'JQL').trim() || 'JQL';
+      var jql = (f.jql || '').trim();
+      return '<span class="bms-favourite-chip" data-index="' + i + '" data-jql="' + escapeHtml(jql) + '">' +
+        '<span class="bms-favourite-chip-name">' + escapeHtml(name) + '</span>' +
+        '<span class="bms-favourite-chip-remove" title="Remove from favourites" aria-label="Remove">×</span></span>';
+    }).join('');
+    listEl.innerHTML = html;
+    var allChips = listEl.querySelectorAll('.bms-favourite-chip');
+    allChips.forEach(function (chip) {
+      var idx = parseInt(chip.dataset.index, 10);
+      var jql = chip.dataset.jql || '';
+      chip.addEventListener('click', function (e) {
+        if (e.target.classList.contains('bms-favourite-chip-remove')) {
+          e.preventDefault();
+          e.stopPropagation();
+          var arr = getBMSJqlFavourites();
+          arr.splice(idx, 1);
+          setBMSJqlFavourites(arr);
+          renderBMSJqlFavourites();
+          return;
+        }
+        var input = document.getElementById('bmsJql');
+        if (input) { input.value = jql; renderBMSList(); }
+      });
+    });
+  }
+
+  function loadBMSFilters() {
+    var sel = document.getElementById('bmsSavedFilter');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Loading…</option>';
+    fetch('/api/jira/filters').then(function (res) { return res.json(); }).then(function (data) {
+      bmsFiltersCache = (data.filters || []).slice();
+      if (!bmsFiltersCache.length) {
+        sel.innerHTML = '<option value="">No filters</option>';
+        if (data.error && (document.getElementById('bmsConfigHint'))) {
+          document.getElementById('bmsConfigHint').textContent = data.error;
+        }
+        return;
+      }
+      sel.innerHTML = bmsFiltersCache.map(function (f) {
+        return '<option value="' + escapeHtml(String(f.id)) + '">' + escapeHtml(f.name || 'Filter ' + f.id) + '</option>';
+      }).join('');
+      var hint = document.getElementById('bmsConfigHint');
+      if (hint) hint.textContent = '';
+      var first = bmsFiltersCache[0];
+      if (first && first.jql) {
+        sel.selectedIndex = 0;
+        var jqlInput = document.getElementById('bmsJql');
+        if (jqlInput) { jqlInput.value = first.jql; renderBMSList(); }
+      }
+    }).catch(function (err) {
+      sel.innerHTML = '<option value="">Failed to load</option>';
+      bmsFiltersCache = [];
+      var hint = document.getElementById('bmsConfigHint');
+      if (hint) hint.textContent = 'Filters: ' + (err.message || 'Network error');
+    });
+  }
+
+  function showBMSContent() {
+    var loader = document.getElementById('bmsInitialLoader');
+    var content = document.getElementById('bmsContent');
+    if (loader) loader.classList.add('hidden');
+    if (content) content.classList.remove('hidden');
+  }
+
+  var BMS_FETCH_TIMEOUT_MS = 15000;
+
+  function renderBMSList() {
+    var listEl = document.getElementById('bmsList');
+    var hintEl = document.getElementById('bmsConfigHint');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="bms-loading" role="status" aria-live="polite"><div class="bms-loading-spinner" aria-hidden="true"></div><span class="bms-loading-text">Loading…</span></div>';
+    if (hintEl) hintEl.textContent = '';
+    var countEl = document.getElementById('bmsCount'); if (countEl) countEl.textContent = '';
+    var jql = buildEffectiveJql();
+    var url = '/api/jira/tickets' + (jql ? '?jql=' + encodeURIComponent(jql) : '');
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, BMS_FETCH_TIMEOUT_MS);
+    fetch(url, { signal: controller.signal }).then(function (res) { return res.json(); }).then(function (data) {
+      clearTimeout(timeoutId);
+      showBMSContent();
+      if (data.hint && hintEl) hintEl.textContent = data.hint;
+      if (data.error) {
+        listEl.innerHTML = '<p class="empty">' + escapeHtml(data.error) + '</p>';
+        return;
+      }
+      var issues = (data.issues || []).filter(function (issue) {
+        var s = (issue.fields && issue.fields.status && issue.fields.status.name) || '';
+        return s !== 'Closed' && s !== 'Resolved';
+      });
+      var baseUrl = (data.baseUrl || '').replace(/\/$/, '');
+      bmsLastData = { issues: issues, baseUrl: baseUrl };
+      if (!issues.length) {
+        listEl.innerHTML = '<p class="empty">No Jira tickets found. Try a different JQL or configure the server.</p>';
+        return;
+      }
+      populateBMSFilters(issues);
+      applyBMSFilters();
+    }).catch(function (err) {
+      clearTimeout(timeoutId);
+      showBMSContent();
+      var msg = err.name === 'AbortError' ? 'Request timed out. Check Jira configuration or try again.' : (err.message || 'Network error');
+      listEl.innerHTML = '<p class="empty">Failed to load Jira tickets: ' + escapeHtml(msg) + '</p>';
+    });
+  }
+
+  function runVaultSearch(query) {
+    var q = (query || '').trim().toLowerCase();
+    var result = { credentials: [], informations: [], records: [], bms: [] };
+    if (!q) return Promise.resolve(result);
+    var data = loadData();
+    result.credentials = (data.entries || []).filter(function (e) {
+      return (e.label || '').toLowerCase().indexOf(q) !== -1 || (e.username || '').toLowerCase().indexOf(q) !== -1;
+    });
+    result.informations = (data.informations || []).filter(function (e) {
+      return (e.title || '').toLowerCase().indexOf(q) !== -1 || (e.content || '').toLowerCase().indexOf(q) !== -1;
+    });
+    var records = getRecords();
+    result.records = records.filter(function (r) {
+      return (r.description || '').toLowerCase().indexOf(q) !== -1 || (r.fileName || '').toLowerCase().indexOf(q) !== -1;
+    });
+    function searchBmsInMemory() {
+      var issues = bmsLastData.issues || [];
+      var terms = q.split(/\s+/).filter(Boolean);
+      return issues.filter(function (issue) {
+        var key = (issue.key || '').toLowerCase();
+        var summary = ((issue.fields && issue.fields.summary) || '').toLowerCase();
+        var isNumeric = /^\d+$/.test(q.replace(/\s/g, ''));
+        if (isNumeric) return key.indexOf(q) !== -1;
+        for (var t = 0; t < terms.length; t++) { if (summary.indexOf(terms[t]) === -1) return false; }
+        return true;
+      });
+    }
+    if (currentMode === 'work' && bmsLastData.issues && bmsLastData.issues.length > 0) {
+      result.bms = searchBmsInMemory();
+      return Promise.resolve(result);
+    }
+    if (currentMode === 'work') {
+      var jqlEsc = q.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      var jql = 'project = "' + BMS_PROJECT_KEY.replace(/"/g, '') + '" AND (summary ~ "' + jqlEsc + '" OR key ~ "' + jqlEsc + '") ORDER BY updated DESC';
+      return fetch('/api/jira/tickets?jql=' + encodeURIComponent(jql)).then(function (res) { return res.json(); }).then(function (data) {
+        result.bms = (data.issues || []).slice(0, 15);
+        result.bmsBaseUrl = (data.baseUrl || '').replace(/\/$/, '');
+        return result;
+      }).catch(function () { return result; });
+    }
+    return Promise.resolve(result);
+  }
+
+  function renderChatbotResult(result) {
+    var parts = [];
+    if (result.credentials.length) {
+      parts.push('<div class="chatbot-section"><div class="chatbot-section-title">Credentials</div>');
+      result.credentials.slice(0, 8).forEach(function (e, i) {
+        parts.push('<div class="chatbot-item chatbot-cred-item" data-cred-index="' + i + '"><div class="chatbot-item-main"><div class="chatbot-item-header">' + escapeHtml(e.label || 'Credential') + '</div><div class="chatbot-item-desc">Username: ' + escapeHtml(maskUsername(e.username || '')) + '</div></div><div><button type="button" class="chatbot-copy-btn copy-user" title="Copy username">' + iconCopy + '</button><button type="button" class="chatbot-copy-btn copy-pass" title="Copy password">' + iconCopy + '</button></div></div>');
+      });
+      if (result.credentials.length > 8) parts.push('<div class="chatbot-empty">+' + (result.credentials.length - 8) + ' more</div>');
+      parts.push('</div>');
+    }
+    if (result.informations.length) {
+      parts.push('<div class="chatbot-section"><div class="chatbot-section-title">Information</div>');
+      result.informations.slice(0, 8).forEach(function (e, i) {
+        var title = escapeHtml(e.title || '');
+        var content = (e.content || '').slice(0, 80); if (e.content && e.content.length > 80) content += '…';
+        parts.push('<div class="chatbot-item chatbot-info-item" data-info-index="' + i + '"><div class="chatbot-item-main"><div class="chatbot-item-header">' + title + '</div><div class="chatbot-item-desc">' + escapeHtml(content) + '</div></div><button type="button" class="chatbot-copy-btn copy-content" title="Copy content">' + iconCopy + '</button></div>');
+      });
+      if (result.informations.length > 8) parts.push('<div class="chatbot-empty">+' + (result.informations.length - 8) + ' more</div>');
+      parts.push('</div>');
+    }
+    if (result.records.length) {
+      parts.push('<div class="chatbot-section"><div class="chatbot-section-title">Documents</div>');
+      result.records.slice(0, 6).forEach(function (r, i) {
+        var title = r.description || 'Document';
+        var description = r.fileName || '';
+        parts.push('<div class="chatbot-item chatbot-record-item" data-record-index="' + i + '"><div class="chatbot-item-main"><div class="chatbot-item-header">' + escapeHtml(title) + '</div><div class="chatbot-item-desc">' + escapeHtml(description) + '</div></div><button type="button" class="chatbot-copy-btn copy-content" title="Copy">' + iconCopy + '</button></div>');
+      });
+      if (result.records.length > 6) parts.push('<div class="chatbot-empty">+' + (result.records.length - 6) + ' more</div>');
+      parts.push('</div>');
+    }
+    if (currentMode === 'work' && result.bms.length) {
+      var baseUrl = (result.bmsBaseUrl || bmsLastData.baseUrl || '').replace(/\/$/, '');
+      parts.push('<div class="chatbot-section"><div class="chatbot-section-title">BMS (Jira)</div>');
+      result.bms.slice(0, 6).forEach(function (issue, i) {
+        var key = issue.key || '';
+        var summary = (issue.fields && issue.fields.summary) || '';
+        var href = baseUrl ? baseUrl + '/browse/' + key : '#';
+        parts.push('<div class="chatbot-item chatbot-bms-item" data-bms-index="' + i + '"><div class="chatbot-item-main"><div class="chatbot-item-header"><a href="' + escapeHtml(href) + '" target="_blank" rel="noopener" style="color:var(--accent)">' + escapeHtml(key) + '</a></div><div class="chatbot-item-desc">' + escapeHtml(summary) + '</div></div><button type="button" class="chatbot-copy-btn copy-link" title="Copy link">' + iconCopy + '</button></div>');
+      });
+      if (result.bms.length > 6) parts.push('<div class="chatbot-empty">+' + (result.bms.length - 6) + ' more</div>');
+      parts.push('</div>');
+    }
+    if (!parts.length) parts.push('<div class="chatbot-empty">No results found.</div>');
+    return parts.join('');
+  }
+
+  function attachChatbotCopyHandlers(botEl, result) {
+    if (!botEl || !result) return;
+    botEl.querySelectorAll('.chatbot-cred-item').forEach(function (el) {
+      var i = parseInt(el.getAttribute('data-cred-index'), 10);
+      var e = result.credentials[i];
+      if (!e) return;
+      var copyUser = el.querySelector('.copy-user');
+      var copyPass = el.querySelector('.copy-pass');
+      if (copyUser) copyUser.addEventListener('click', function () { copyToClipboard(e.username || '', this); });
+      if (copyPass) copyPass.addEventListener('click', function () { copyToClipboard(e.password || '', this); });
+    });
+    botEl.querySelectorAll('.chatbot-info-item').forEach(function (el) {
+      var i = parseInt(el.getAttribute('data-info-index'), 10);
+      var e = result.informations[i];
+      if (!e) return;
+      var btn = el.querySelector('.copy-content');
+      if (btn) btn.addEventListener('click', function () { copyToClipboard(e.content || '', this); });
+    });
+    botEl.querySelectorAll('.chatbot-record-item').forEach(function (el) {
+      var i = parseInt(el.getAttribute('data-record-index'), 10);
+      var r = result.records[i];
+      if (!r) return;
+      var text = (r.description || r.fileName || '').trim();
+      var btn = el.querySelector('.copy-content');
+      if (btn) btn.addEventListener('click', function () { copyToClipboard(text, this); });
+    });
+    var baseUrl = (result.bmsBaseUrl || bmsLastData.baseUrl || '').replace(/\/$/, '');
+    botEl.querySelectorAll('.chatbot-bms-item').forEach(function (el) {
+      var i = parseInt(el.getAttribute('data-bms-index'), 10);
+      var issue = result.bms[i];
+      if (!issue) return;
+      var link = baseUrl ? baseUrl + '/browse/' + (issue.key || '') : '';
+      var btn = el.querySelector('.copy-link');
+      if (btn) btn.addEventListener('click', function () { copyToClipboard(link, this); });
+    });
+  }
+
+  function initVaultChatbot() {
+    var wrap = document.getElementById('vaultChatbotWrap');
+    var btn = document.getElementById('vaultChatbotBtn');
+    var panel = document.getElementById('vaultChatbotPanel');
+    var messagesEl = document.getElementById('vaultChatbotMessages');
+    var inputEl = document.getElementById('vaultChatbotInput');
+    var closeBtn = document.getElementById('vaultChatbotClose');
+    if (!wrap || !btn || !panel || !messagesEl || !inputEl) return;
+    function appendBotMessage(html) {
+      var div = document.createElement('div');
+      div.className = 'vault-chatbot-msg bot';
+      div.innerHTML = html;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    function showWelcomeIfNeeded() {
+      var seen = false;
+      try { seen = localStorage.getItem(STORAGE_KEY_CHATBOT_WELCOME_SHOWN) === '1'; } catch (_) {}
+      if (seen) return;
+      appendBotMessage('<div class="chatbot-empty">Welcome to Vault Bot! Type any keyword to search your credentials, informations, documents, and BMS issues.</div>');
+      try { localStorage.setItem(STORAGE_KEY_CHATBOT_WELCOME_SHOWN, '1'); } catch (_) {}
+    }
+    function openPanel() {
+      panel.classList.remove('hidden');
+      panel.setAttribute('aria-hidden', 'false');
+      showWelcomeIfNeeded();
+      inputEl.focus();
+    }
+    function closePanel() { panel.classList.add('hidden'); panel.setAttribute('aria-hidden', 'true'); }
+    function appendUserMessage(text) {
+      var div = document.createElement('div');
+      div.className = 'vault-chatbot-msg user';
+      div.textContent = text;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    function doSearch() {
+      var query = (inputEl.value || '').trim();
+      if (!query) return;
+      inputEl.value = '';
+      appendUserMessage(query);
+      var botDiv = document.createElement('div');
+      botDiv.className = 'vault-chatbot-msg bot';
+      botDiv.innerHTML = '<span class="chatbot-empty">Searching…</span>';
+      messagesEl.appendChild(botDiv);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      runVaultSearch(query).then(function (result) {
+        botDiv.innerHTML = renderChatbotResult(result);
+        attachChatbotCopyHandlers(botDiv, result);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }).catch(function () {
+        botDiv.innerHTML = '<div class="chatbot-empty">Search failed.</div>';
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+    }
+    btn.addEventListener('click', function () {
+      if (panel.classList.contains('hidden')) openPanel(); else closePanel();
+    });
+    if (closeBtn) closeBtn.addEventListener('click', closePanel);
+    if (inputEl) inputEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } });
   }
 
   function initAuth() {
@@ -753,6 +1703,26 @@
     renderInfoList();
   });
 
+  // Auto-detect information type from content and preselect dropdown
+  var infoTypeEl = document.getElementById('infoType');
+  var infoContentEl = document.getElementById('infoContent');
+  var infoTypeManuallySet = false;
+  if (infoTypeEl) {
+    infoTypeEl.addEventListener('change', function () { infoTypeManuallySet = true; });
+  }
+  function autoSelectInfoType() {
+    if (!infoContentEl || !infoTypeEl) return;
+    if (infoTypeManuallySet) return;
+    var detected = detectInfoTypeFromContent(infoContentEl.value || '');
+    if (detected && infoTypeEl.value !== detected) {
+      infoTypeEl.value = detected;
+    }
+  }
+  if (infoContentEl) {
+    infoContentEl.addEventListener('input', autoSelectInfoType);
+    infoContentEl.addEventListener('blur', autoSelectInfoType);
+  }
+
   var addRecordFormEl = document.getElementById('addRecordForm');
   var recordFileEl = document.getElementById('recordFile');
   var recordFileNameDisplayEl = document.getElementById('recordFileNameDisplay');
@@ -772,7 +1742,7 @@
     var feedbackEl = document.getElementById('recordUploadFeedback');
     var description = (descEl && descEl.value || '').trim();
     var file = fileEl && fileEl.files && fileEl.files[0];
-    if (!description) { alert('Description is required.'); return; }
+    if (!description) { alert('description is required.'); return; }
     if (!file) { alert('Please select a file.'); return; }
     function showFeedback(msg, isError) { if (!feedbackEl) return; feedbackEl.textContent = msg; feedbackEl.className = 'record-upload-feedback' + (isError ? ' error' : ' success'); }
     function setLoading(loading) { if (!btn) return; btn.disabled = loading; btn.classList.toggle('loading', loading); btn.innerHTML = loading ? '<span class="spinner" aria-hidden="true"></span>Uploading...' : 'Upload'; }
@@ -876,6 +1846,9 @@
   document.addEventListener('paste', function (e) {
     var appContent = document.getElementById('appContent');
     if (!appContent || appContent.classList.contains('hidden')) return;
+    // Do not intercept paste when user is typing in an input/textarea — let Ctrl+V paste text
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     var data = e.clipboardData;
     if (!data || !data.files || !data.files.length) return;
     e.preventDefault();
@@ -933,30 +1906,94 @@
     processNext(0);
   });
 
-  document.getElementById('tabCredentials').addEventListener('click', function () {
-    document.getElementById('tabCredentials').classList.add('active');
-    document.getElementById('tabInformations').classList.remove('active');
-    document.getElementById('tabRecords').classList.remove('active');
-    document.getElementById('panelCredentials').classList.add('active');
-    document.getElementById('panelInformations').classList.remove('active');
-    document.getElementById('panelRecords').classList.remove('active');
-  });
-  document.getElementById('tabInformations').addEventListener('click', function () {
-    document.getElementById('tabInformations').classList.add('active');
-    document.getElementById('tabCredentials').classList.remove('active');
-    document.getElementById('tabRecords').classList.remove('active');
-    document.getElementById('panelInformations').classList.add('active');
-    document.getElementById('panelCredentials').classList.remove('active');
-    document.getElementById('panelRecords').classList.remove('active');
+  function setActiveTab(activeTabId, activePanelId) {
+    ['tabCredentials', 'tabInformations', 'tabBMS', 'tabRecords', 'tabBot'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('active', id === activeTabId);
+    });
+    ['panelCredentials', 'panelInformations', 'panelBMS', 'panelRecords', 'panelBot'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('active', id === activePanelId);
+    });
+  }
+  document.getElementById('tabCredentials').addEventListener('click', function () { setActiveTab('tabCredentials', 'panelCredentials'); });
+  document.getElementById('tabInformations').addEventListener('click', function () { setActiveTab('tabInformations', 'panelInformations'); });
+  document.getElementById('tabBMS').addEventListener('click', function () {
+    setActiveTab('tabBMS', 'panelBMS');
+    loadBMSFilters();
+    renderBMSJqlFavourites();
+    updateBMSViewToggle();
+    renderBMSList();
   });
   document.getElementById('tabRecords').addEventListener('click', function () {
-    document.getElementById('tabRecords').classList.add('active');
-    document.getElementById('tabCredentials').classList.remove('active');
-    document.getElementById('tabInformations').classList.remove('active');
-    document.getElementById('panelRecords').classList.add('active');
-    document.getElementById('panelCredentials').classList.remove('active');
-    document.getElementById('panelInformations').classList.remove('active');
+    setActiveTab('tabRecords', 'panelRecords');
     renderRecordsList();
+  });
+  document.getElementById('tabBot').addEventListener('click', function () { setActiveTab('tabBot', 'panelBot'); });
+
+  function encryptVaultForBot(plaintextJson, secret) {
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(secret))
+      .then(function (hashBuffer) {
+        return crypto.subtle.importKey('raw', hashBuffer, { name: 'AES-GCM' }, false, ['encrypt']);
+      })
+      .then(function (key) {
+        var iv = crypto.getRandomValues(new Uint8Array(12));
+        var encoded = new TextEncoder().encode(plaintextJson);
+        return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv, tagLength: 128 }, key, encoded)
+          .then(function (ciphertext) {
+            var combined = new Uint8Array(iv.length + ciphertext.byteLength);
+            combined.set(iv);
+            combined.set(new Uint8Array(ciphertext), iv.length);
+            return btoa(String.fromCharCode.apply(null, combined));
+          });
+      });
+  }
+  document.getElementById('botSyncBtn').addEventListener('click', function () {
+    var phoneEl = document.getElementById('botPhone');
+    var secretEl = document.getElementById('botSecret');
+    var statusEl = document.getElementById('botSyncStatus');
+    var phone = (phoneEl && phoneEl.value || '').trim().replace(/\D/g, '');
+    var secret = (secretEl && secretEl.value || '').trim();
+    if (!phone || phone.length < 10) {
+      if (statusEl) { statusEl.textContent = 'Enter a valid phone number with country code.'; statusEl.style.color = 'var(--danger)'; }
+      return;
+    }
+    if (!secret) {
+      if (statusEl) { statusEl.textContent = 'Enter a bot secret.'; statusEl.style.color = 'var(--danger)'; }
+      return;
+    }
+    var work = getDataByKey(STORAGE_KEY);
+    var personal = getDataByKey(STORAGE_KEY_PERSONAL);
+    var vault = {
+      entries: (work.entries || []).concat(personal.entries || []),
+      informations: (work.informations || []).concat(personal.informations || [])
+    };
+    if (statusEl) { statusEl.textContent = 'Syncing…'; statusEl.style.color = 'var(--muted)'; }
+    encryptVaultForBot(JSON.stringify(vault), secret).then(function (dataBase64) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/bot/sync');
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function () {
+        try {
+          var res = JSON.parse(xhr.responseText || '{}');
+          if (res.ok && statusEl) {
+            statusEl.textContent = 'Synced. On WhatsApp send: <your_secret> help';
+            statusEl.style.color = 'var(--success)';
+          } else if (statusEl) {
+            statusEl.textContent = res.error || 'Sync failed';
+            statusEl.style.color = 'var(--danger)';
+          }
+        } catch (_) {
+          if (statusEl) { statusEl.textContent = 'Sync failed'; statusEl.style.color = 'var(--danger)'; }
+        }
+      };
+      xhr.onerror = function () {
+        if (statusEl) { statusEl.textContent = 'Network error'; statusEl.style.color = 'var(--danger)'; }
+      };
+      xhr.send(JSON.stringify({ phone: phone, data: dataBase64 }));
+    }).catch(function () {
+      if (statusEl) { statusEl.textContent = 'Encryption failed'; statusEl.style.color = 'var(--danger)'; }
+    });
   });
 
   document.getElementById('modeToggle').addEventListener('click', function () {
@@ -993,19 +2030,128 @@
   var recordPreviewModal = document.getElementById('recordPreviewModal');
   if (recordPreviewModal) recordPreviewModal.addEventListener('click', function (e) { if (e.target === recordPreviewModal) closeRecordPreview(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var previewModal = document.getElementById('recordPreviewModal'); if (previewModal && !previewModal.classList.contains('hidden')) closeRecordPreview(); } });
+  var notificationClose = document.getElementById('notificationClose');
+  if (notificationClose) notificationClose.addEventListener('click', hideNotification);
 
   var searchInfoEl = document.getElementById('searchInfo');
   if (searchInfoEl) searchInfoEl.addEventListener('input', renderInfoList);
   var searchRecordsEl = document.getElementById('searchRecords');
   if (searchRecordsEl) searchRecordsEl.addEventListener('input', renderRecordsList);
+  var bmsRefreshBtn = document.getElementById('bmsRefresh');
+  if (bmsRefreshBtn) bmsRefreshBtn.addEventListener('click', renderBMSList);
+  var bmsSavedFilterEl = document.getElementById('bmsSavedFilter');
+  if (bmsSavedFilterEl) bmsSavedFilterEl.addEventListener('change', function () {
+    var id = (bmsSavedFilterEl.value || '').trim();
+    if (!id) return;
+    var filter = bmsFiltersCache.filter(function (f) { return String(f.id) === id; })[0];
+    if (filter && filter.jql != null) {
+      var jqlInput = document.getElementById('bmsJql');
+      if (jqlInput) {
+        jqlInput.value = filter.jql;
+        renderBMSList();
+      }
+    }
+  });
+  var bmsAddFavouriteBtn = document.getElementById('bmsAddFavourite');
+  var addFavouriteModal = document.getElementById('addFavouriteModal');
+  var addFavouriteNameInput = document.getElementById('addFavouriteNameInput');
+  var addFavouriteSaveBtn = document.getElementById('addFavouriteSave');
+  var addFavouriteCancelBtn = document.getElementById('addFavouriteCancel');
+  var addFavouritePendingJql = null;
+  function closeAddFavouriteModal() {
+    if (addFavouriteModal) {
+      addFavouriteModal.classList.add('hidden');
+      addFavouriteModal.setAttribute('aria-hidden', 'true');
+    }
+    addFavouritePendingJql = null;
+    if (addFavouriteNameInput) addFavouriteNameInput.value = '';
+  }
+  function openAddFavouriteModal(jql) {
+    addFavouritePendingJql = jql;
+    if (addFavouriteNameInput) {
+      addFavouriteNameInput.value = '';
+      addFavouriteNameInput.focus();
+    }
+    if (addFavouriteModal) {
+      addFavouriteModal.classList.remove('hidden');
+      addFavouriteModal.setAttribute('aria-hidden', 'false');
+    }
+  }
+  if (bmsAddFavouriteBtn) bmsAddFavouriteBtn.addEventListener('click', function () {
+    var jqlEl = document.getElementById('bmsJql');
+    var jql = (jqlEl && jqlEl.value || '').trim();
+    if (!jql) { alert('Enter a JQL query first, then add to favourites.'); return; }
+    openAddFavouriteModal(jql);
+  });
+  if (addFavouriteSaveBtn) addFavouriteSaveBtn.addEventListener('click', function () {
+    var name = (addFavouriteNameInput && addFavouriteNameInput.value || '').trim() || 'JQL';
+    if (!addFavouritePendingJql) { closeAddFavouriteModal(); return; }
+    var favs = getBMSJqlFavourites();
+    favs.push({ name: name, jql: addFavouritePendingJql });
+    setBMSJqlFavourites(favs);
+    renderBMSJqlFavourites();
+    closeAddFavouriteModal();
+  });
+  if (addFavouriteCancelBtn) addFavouriteCancelBtn.addEventListener('click', closeAddFavouriteModal);
+  if (addFavouriteNameInput) {
+    addFavouriteNameInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') addFavouriteSaveBtn && addFavouriteSaveBtn.click();
+      if (e.key === 'Escape') closeAddFavouriteModal();
+    });
+  }
+  if (addFavouriteModal) {
+    addFavouriteModal.addEventListener('click', function (e) {
+      if (e.target === addFavouriteModal) closeAddFavouriteModal();
+    });
+  }
+  initJqlAutocomplete();
+  ['bmsSortBy', 'bmsSortOrder'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', applyBMSFilters);
+  });
+  var bmsClearFiltersBtn = document.getElementById('bmsClearFilters');
+  if (bmsClearFiltersBtn) bmsClearFiltersBtn.addEventListener('click', function () {
+    bmsFilterSelected = { assignee: [], status: [], type: [], fixVersion: [], priority: [] };
+    ['bmsFilterAssigneeWrap', 'bmsFilterStatusWrap', 'bmsFilterTypeWrap', 'bmsFilterFixVersionWrap'].forEach(function (wrapId) {
+      var wrap = document.getElementById(wrapId);
+      if (wrap) {
+        wrap.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.checked = false; });
+        var trigger = wrap.querySelector('.bms-filter-multiselect-trigger');
+        if (trigger) {
+          var textEl = trigger.querySelector('.bms-filter-trigger-text');
+          var countEl = trigger.querySelector('.bms-filter-trigger-count');
+          if (textEl) textEl.textContent = 'All';
+          if (countEl) countEl.textContent = '';
+        }
+      }
+    });
+    var bmsSearchEl = document.getElementById('bmsSearch');
+    if (bmsSearchEl) bmsSearchEl.value = '';
+    applyBMSFilters();
+  });
+  var bmsSearchEl = document.getElementById('bmsSearch');
+  if (bmsSearchEl) bmsSearchEl.addEventListener('input', applyBMSFilters);
+  var bmsViewToggleBtn = document.getElementById('bmsViewToggle');
+  if (bmsViewToggleBtn) bmsViewToggleBtn.addEventListener('click', function () {
+    setBMSView(getBMSView() === 'list' ? 'grid' : 'list');
+    applyBMSFilters();
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.bms-filter-multiselect-wrap')) closeAllBMSMultiselects();
+  });
   var recordsViewToggleBtn = document.getElementById('recordsViewToggle');
   if (recordsViewToggleBtn) recordsViewToggleBtn.addEventListener('click', function () {
     setRecordsView(getRecordsView() === 'list' ? 'card' : 'list');
     renderRecordsList();
   });
+  var credentialsViewToggleBtn = document.getElementById('credentialsViewToggle');
+  if (credentialsViewToggleBtn) credentialsViewToggleBtn.addEventListener('click', function () {
+    setCredentialsView(getCredentialsView() === 'list' ? 'grid' : 'list');
+    renderList();
+  });
 
-  document.getElementById('exportBtn').addEventListener('click', function () {
-    if (!sessionEncryptionKey) { alert('Unlock with PIN first to export (passwords will be encrypted in the file).'); return; }
+  document.getElementById('backupBtn').addEventListener('click', function () {
+    if (!sessionEncryptionKey) { alert('Unlock with PIN first to backup (export).'); return; }
     var workData = getDataByKey(STORAGE_KEY);
     var personalData = getDataByKey(STORAGE_KEY_PERSONAL);
     function encryptEntries(entries) {
@@ -1015,21 +2161,61 @@
         });
       }));
     }
-    Promise.all([encryptEntries(workData.entries || []), encryptEntries(personalData.entries || [])]).then(function (results) {
-      var exportData = { version: EXPORT_VERSION, exportedAt: new Date().toISOString(), work: { entries: results[0], informations: workData.informations || [] }, personal: { entries: results[1], informations: personalData.informations || [] } };
-      var ts = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '-').slice(0, 19);
-      var filename = 'vault-lite-export-v' + EXPORT_VERSION + '-' + ts + '.json';
-      var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }).catch(function (err) { alert('Export failed: ' + (err.message || 'encryption error')); });
+    loadRecordsIntoCache().then(function () {
+      var records = getRecords();
+      if (!records.length) {
+        var raw = localStorage.getItem(STORAGE_KEY_RECORDS);
+        if (raw && raw.trim()) {
+          try {
+            var parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) records = parsed;
+          } catch (_) {}
+        }
+      }
+      return Promise.all([encryptEntries(workData.entries || []), encryptEntries(personalData.entries || [])]).then(function (results) {
+        var exportData = {
+          version: EXPORT_VERSION,
+          exportedAt: new Date().toISOString(),
+          work: { entries: results[0], informations: workData.informations || [] },
+          personal: { entries: results[1], informations: personalData.informations || [] },
+          records: Array.isArray(records) ? records : []
+        };
+        var body = JSON.stringify(exportData, null, 2);
+        function downloadBackup() {
+          var ts = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '-').slice(0, 19);
+          var filename = 'vault-lite-export-v' + EXPORT_VERSION + '-' + ts + '.json';
+          var blob = new Blob([body], { type: 'application/json' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }
+        return fetch(window.location.origin + '/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+          .then(function (res) {
+            return res.text().then(function (text) {
+              var data;
+              try { data = text ? JSON.parse(text) : {}; } catch (_) { data = {}; }
+              if (res.ok && !data.error) {
+                showNotification('Backup saved to ' + (data.folder || 'vault folder') + '.', 'success');
+                return;
+              }
+              downloadBackup();
+              showNotification('Backup downloaded. Run the app with node server.js to save to your vault folder automatically.', 'info', 6000);
+            });
+          })
+          .catch(function (err) {
+            downloadBackup();
+            showNotification('Backup downloaded. Run the app with node server.js to save to your vault folder automatically.', 'info', 6000);
+          });
+      });
+    }).catch(function (err) { showNotification('Backup failed: ' + (err.message || 'error'), 'error', 5000); });
   });
-  document.getElementById('importBtn').addEventListener('click', function () { document.getElementById('importFile').click(); });
-  document.getElementById('importFile').addEventListener('change', function () {
+
+  document.getElementById('restoreBtn').addEventListener('click', function () { document.getElementById('restoreFile').click(); });
+  document.getElementById('restoreFile').addEventListener('change', function () {
     var file = this.files[0];
+    this.value = '';
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function () {
@@ -1043,7 +2229,7 @@
         if (!Array.isArray(personalData.entries)) personalData.entries = [];
         if (!Array.isArray(personalData.informations)) personalData.informations = [];
         var hasEncrypted = workData.entries.some(function (e) { return e.passwordEncrypted; }) || personalData.entries.some(function (e) { return e.passwordEncrypted; });
-        if (hasEncrypted && !sessionEncryptionKey) { alert('Unlock with PIN first to import a file that contains encrypted passwords.'); document.getElementById('importFile').value = ''; return; }
+        if (hasEncrypted && !sessionEncryptionKey) { alert('Unlock with PIN first to restore a file that contains encrypted passwords.'); return; }
         function decryptEntries(entries) {
           return Promise.all(entries.map(function (e) {
             if (e.passwordEncrypted && sessionEncryptionKey) {
@@ -1055,52 +2241,25 @@
         Promise.all([decryptEntries(workData.entries), decryptEntries(personalData.entries)]).then(function () {
           return Promise.all([saveDataToKey(STORAGE_KEY, workData), saveDataToKey(STORAGE_KEY_PERSONAL, personalData)]);
         }).then(function () {
-          var totalEntries = workData.entries.length + personalData.entries.length;
-          var totalInfos = workData.informations.length + personalData.informations.length;
-          var msg = 'Imported ' + totalEntries + ' credentials (Work: ' + workData.entries.length + ', Personal: ' + personalData.entries.length + ')';
-          if (totalInfos) msg += ', ' + totalInfos + ' informations';
-          alert(msg + '.');
-        }).catch(function (err) { alert('Import failed: ' + (err.message || 'decryption error')); });
-      } catch (err) { alert('Invalid JSON: ' + err.message); }
-      document.getElementById('importFile').value = '';
-    };
-    reader.readAsText(file);
-  });
-
-  document.getElementById('recordsExportBtn').addEventListener('click', function () {
-    var records = getRecords();
-    var exportData = { version: 1, exportedAt: new Date().toISOString(), records: records };
-    var ts = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '-').slice(0, 19);
-    var filename = 'vault-lite-records-' + ts + '.json';
-    var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
-  document.getElementById('recordsImportBtn').addEventListener('click', function () { document.getElementById('recordsImportFile').click(); });
-  document.getElementById('recordsImportFile').addEventListener('change', function () {
-    var file = this.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function () {
-      try {
-        var data = JSON.parse(reader.result);
-        var list = Array.isArray(data) ? data : (data.records && Array.isArray(data.records) ? data.records : []);
-        if (!list.length) { alert('No records found in file.'); document.getElementById('recordsImportFile').value = ''; return; }
-        var valid = list.filter(function (r) { return r && (r.description != null || r.fileName != null) && r.contentBase64 != null; });
-        if (valid.length !== list.length) alert('Skipped ' + (list.length - valid.length) + ' invalid record(s). Imported ' + valid.length + '.');
-        var existing = getRecords();
-        var merged = existing.slice();
-        valid.forEach(function (r) {
-          var id = r.id && !merged.some(function (x) { return x.id === r.id; }) ? r.id : (Date.now().toString(36) + Math.random().toString(36).slice(2));
-          var created = r.createdAt || new Date().toISOString();
-          merged.push({ id: id, description: (r.description || '').trim(), fileName: r.fileName || 'document', contentBase64: r.contentBase64 || '', mimeType: r.mimeType || 'application/octet-stream', createdAt: created, modifiedAt: r.modifiedAt || created });
-        });
-        saveRecords(merged).then(function () { renderRecordsList(); alert('Imported ' + valid.length + ' document(s). Total: ' + merged.length + '.'); }).catch(function (err) { alert('Import failed: ' + (err.message || 'storage error')); });
-      } catch (err) { alert('Invalid JSON: ' + err.message); }
-      document.getElementById('recordsImportFile').value = '';
+          var list = Array.isArray(data.records) ? data.records : [];
+          if (list.length) {
+            var valid = list.filter(function (r) { return r && (r.description != null || r.fileName != null) && r.contentBase64 != null; });
+            var existing = getRecords();
+            var merged = existing.slice();
+            valid.forEach(function (r) {
+              var id = r.id && !merged.some(function (x) { return x.id === r.id; }) ? r.id : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+              var created = r.createdAt || new Date().toISOString();
+              merged.push({ id: id, description: (r.description || '').trim(), fileName: r.fileName || 'document', contentBase64: r.contentBase64 || '', mimeType: r.mimeType || 'application/octet-stream', createdAt: created, modifiedAt: r.modifiedAt || created });
+            });
+            return saveRecords(merged);
+          }
+        }).then(function () {
+          renderList();
+          renderInfoList();
+          renderRecordsList();
+          showNotification('Restore (import) complete.', 'success');
+        }).catch(function (err) { showNotification('Restore failed: ' + (err.message || 'error'), 'error', 5000); });
+      } catch (err) { showNotification('Invalid backup file: ' + err.message, 'error', 5000); }
     };
     reader.readAsText(file);
   });
@@ -1115,8 +2274,9 @@
     }
   });
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { initAuth(); });
+    document.addEventListener('DOMContentLoaded', function () { initAuth(); initVaultChatbot(); });
   } else {
     initAuth();
+    initVaultChatbot();
   }
 })();
